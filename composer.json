@@ -1,0 +1,13 @@
+{
+  "name": "thelia/siret-management-module",
+  "description": "Module allowing the management of siret numbers for customers",
+  "license": "LGPL-3.0-or-later",
+  "type": "thelia-module",
+  "require": {
+    "thelia/installer": "~1.1",
+    "simondevelop/sirene": "^1.1"
+  },
+  "extra": {
+    "installer-name": "SiretManagement"
+  }
+}
