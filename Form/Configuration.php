@@ -16,13 +16,12 @@ class Configuration extends BaseForm
 
         $valuePublicConsumer = SiretManagement::getConfigValue('public_consumer', null);
         $valuePrivateConsumer = SiretManagement::getConfigValue('private_consumer', null);
-        $lang = $this->getRequest()->getSession()->get('thelia.admin.edition.lang');
         $form->add(
             'public_consumer',
             TextType::class,
             [
                 'data' => $valuePublicConsumer,
-                'label' => Translator::getInstance()->trans("Consumer public key", [], SiretManagement::DOMAIN_NAME,$lang->getLocale()),
+                'label' => Translator::getInstance()->trans("Consumer public key", [], SiretManagement::DOMAIN_NAME),
                 'label_attr' => array(
                     'for' => "public_consumer"
                 ),

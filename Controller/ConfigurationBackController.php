@@ -31,12 +31,11 @@ class ConfigurationBackController extends BaseAdminController
         try {
             $vform = $this->validateForm($form);
             $data = $vform->getData();
-            $lang = $session->get('thelia.admin.edition.lang');
             $valuePublicConsumer = $data['public_consumer'];
             $valuePrivateConsumer = $data['private_consumer'];
 
-            SiretManagement::setConfigValue('public_consumer', $valuePublicConsumer, $lang->getLocale());
-            SiretManagement::setConfigValue('private_consumer', $valuePrivateConsumer, $lang->getLocale());
+            SiretManagement::setConfigValue('public_consumer', $valuePublicConsumer);
+            SiretManagement::setConfigValue('private_consumer', $valuePrivateConsumer);
         } catch (Exception $e) {
             $this->setupFormErrorContext(
                 Translator::getInstance()->trans("Syntax error"),
