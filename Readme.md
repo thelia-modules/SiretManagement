@@ -49,6 +49,7 @@ This module has no dependency on JQuery.
 You can override the siret.html file in your own template for a custom integration.
 
 ### Suggestion for `default` template
+
 #### In register.html
 ```
                 </fieldset>
@@ -63,6 +64,16 @@ You can override the siret.html file in your own template for a custom integrati
 {hook name="register.javascript-initialization"}
 {hook name="siret.js"}
 {/block}
+```
+
+#### In account-update.html
+
+```
+          </fieldset>
+
+          {hook name="siret.check" mode='update'}
+
+          {form_field field="newsletter"}
 ```
 
 ### Suggestion for `modern` template
@@ -92,14 +103,4 @@ You can override the siret.html file in your own template for a custom integrati
       {hook name="siret.check" mode='create'}
 
       <fieldset id="register-login">
-```
-
-#### In account-update.html
-
-```
-          </fieldset>
-
-          {hook name="siret.check" mode='update'}
-
-          {form_field field="newsletter"}
 ```
