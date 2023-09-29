@@ -1,0 +1,50 @@
+{if $use_siret || $use_tva_intra}
+<fieldset id="administrative-info" class="panel panel-default">
+    <div class="panel-heading">
+        {intl l="Administrative Information"}
+    </div>
+
+    <div class="panel-body">
+        {if $use_siret}
+            {form_field field="siret"}
+                <div class="form-group group-lastname {if $error}has-error{/if}">
+                    <label class="control-label col-sm-3" for="siret_input">{$label}{if $required} <span class="required">*</span>{/if}</label>
+                    <div class="control-input col-sm-5">
+                        <input type="text" name="{$name}" id="siret_input" class="form-control" maxlength="255" placeholder="{intl l="Numéro SIRET (14 caractères)"}" value="{$siret}" {if $required} aria-required="true" required{/if}{if !isset($error_focus) && $error} autofocus{/if}>
+                        {if $error }
+                            <span class="help-block">{$message}</span>
+                            {assign var="error_focus" value="true"}
+                        {/if}
+                    </div>
+                </div><!--/.form-group-->
+            {/form_field}
+
+            {* Allow address filling from SIRENE database when creating customer account *}
+            {if $mode == 'create'}
+            <div style="margin: 1rem 0">
+                <input readonly='true' id='result-search' type='text' value='' style="display: none;">
+                <div class="text-center" id="fillAddressButton">
+                    <button type="button" class="btn btn-default btn-xs">{intl l="Pré-remplir vos champs adresses "}</button>
+                </div>
+            </div>
+            {/if}
+        {/if}
+
+        {if $use_tva_intra}
+            {form_field field="tva_intra"}
+                <div class="form-group group-lastname {if $error}has-error{/if}">
+                    <label class="control-label col-sm-3" for="{$label_attr.for|default:null}">{$label}{if $required} <span class="required">*</span>{/if}</label>
+                    <div class="control-input col-sm-5">
+                        <input type="text" name="{$name}" id="{$label_attr.for|default:null}" class="form-control" maxlength="255" placeholder="{intl l="Numéro de TVA Intra-communautaire"}" value="{$tva_intra}" {if $required} aria-required="true" required{/if}{if !isset($error_focus) && $error} autofocus{/if}>
+                        {if $error }
+                            <span class="help-block">{$message}</span>
+                            {assign var="error_focus" value="true"}
+                        {/if}
+                    </div>
+                </div><!--/.form-group-->
+            {/form_field}
+        {/if}
+    </div>
+</fieldset>
+{/if}
+

@@ -1,0 +1,40 @@
+{if $use_siret || $use_tva_intra}
+    <div class="row" id="siret-management">
+        <div class="col-md-12 general-block-decorator">
+            <div class="row">
+                <div class="col-md-12 title title-without-tabs">
+                    {intl l="Customer administrative information" d="siretmanagement.bo.default"}
+                </div>
+                <div class="col-md-12">
+                    {form name="siretmanagement_customer_form"}
+                        <form method="POST" action="{url path="/admin/module/siret/customer/$customer_id"}" {form_enctype}>
+                            {form_hidden_fields}
+
+                            {if $form_error}
+                                <div class="alert alert-danger">{$form_error_message}</div>
+                            {/if}
+
+                            {render_form_field field="success_url" value={url path="/admin/customer/update?customer_id=%id" target="siret-management" id=$customer_id}}
+                            {render_form_field field="error_url" value={url path="/admin/customer/update?customer_id=%id" target="siret-management" id=$customer_id}}
+
+                            <div class="row">
+                                {if $use_siret}
+                                    <div class="col-md-6">
+                                        {render_form_field field='siret' value=$siret}
+                                    </div>
+                                {/if}
+
+                                {if $use_tva_intra}
+                                <div class="col-md-6">
+                                    {render_form_field field='tva_intra' value=$tva_intra}
+                                </div>
+                                {/if}
+                            </div>
+                            <button type="submit" class="btn btn-primary">{intl l="Save" d="siretmanagement.bo.default"}</button>
+                        </form>
+                    {/form}
+                </div>
+            </div>
+        </div>
+    </div>
+{/if}

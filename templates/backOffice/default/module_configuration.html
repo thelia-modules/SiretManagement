@@ -1,0 +1,51 @@
+<div class="general-block-decorator">
+  <div class="row">
+    <div class="col-md-12 title title-without-tabs">
+      {intl l='Edit your siret API configuration.' d='siretmanagement.bo.default'}
+    </div>
+
+    <div class="form-container">
+      <div class="col-md-12">
+        {form name="siretmanagement_config_form"}
+            <form method="POST" action="{url path="/admin/module/siret/configuration/save"}" {form_enctype}>
+                {include
+                    file="includes/inner-form-toolbar.html"
+                    hide_flags = true
+                    page_url   = "{url path='/admin/module/SiretManagement'}"
+                    close_url  = "{url path='/admin/modules'}"
+                }
+
+                {form_hidden_fields}
+
+                {if $form_error}
+                    <div class="alert alert-danger">{$form_error_message}</div>
+                {/if}
+
+                {render_form_field field="success_url" value={url path="/admin/module/SiretManagement"}}
+                {render_form_field field="error_url" value={url path="/admin/module/SiretManagement"}}
+
+                <div class="row">
+                    <div class="col-md-6">
+                        {render_form_field field='public_consumer'}
+                    </div>
+                    <div class="col-md-6">
+                        {render_form_field field='private_consumer'}
+                    </div>
+                </div>
+
+
+                <div class="col-md-6">
+                    {render_form_field field='use_siret'}
+                    {render_form_field field='siret_required'}
+                </div>
+
+                <div class="col-md-6">
+                    {render_form_field field='use_tva_intra'}
+                    {render_form_field field='tva_intra_required'}
+                </div>
+            </form>
+        {/form}
+      </div>
+    </div>
+  </div>
+</div>

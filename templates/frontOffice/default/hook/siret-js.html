@@ -1,0 +1,52 @@
+<script>
+    const url = '{url path="/register/searchSiret" siret='_Q_'}';
+
+    const fillAddressButton = document.getElementById('fillAddressButton');
+    const inputField = document.getElementById('siret_input');
+
+    let currentResult =  null;
+
+    fillAddressButton.style.display = 'none'
+
+    inputField.onkeyup = function() {
+        if (inputField.value === '') {
+            return;
+        }
+
+        console.log("URL:", url.replace('_Q_', encodeURIComponent(inputField.value)));
+
+        fetch(url.replace('_Q_', encodeURIComponent(inputField.value)))
+            .then(response => {
+                return response.json();
+            }).then(result => {
+                currentResult = result;
+
+                console.log('SUCCESS BLOCK: ', result);
+                fillAddressButton.style.display = 'block';
+            }).catch(error => {
+                fillAddressButton.style.display = 'none';
+
+                currentResult = null;
+
+                console.log('ERROR:', error);
+            })
+    }
+
+    fillAddressButton.onclick = function() {
+        if (currentResult === null) {
+            return;
+        }
+
+        const adress = currentResult.etablissement.adresseEtablissement;
+
+        const inputCompany= document.getElementById('company');
+        const inputAdress1 = document.getElementById('address1');
+        const inputZipCode = document.getElementById('zipcode');
+        const inputCity = document.getElementById('city');
+
+        inputCompany.value = currentResult.etablissement.uniteLegale.denominationUniteLegale;
+        inputCity.value = adress.libelleCommuneEtablissement;
+        inputZipCode.value = adress.codeCommuneEtablissement;
+        inputAdress1.value = (adress.numeroVoieEtablissement+' '+adress.typeVoieEtablissement+' '+adress.libelleVoieEtablissement+', '+adress.libelleCommuneEtablissement).trim();
+    }
+</script>

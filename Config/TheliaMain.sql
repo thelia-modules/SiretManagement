@@ -14,9 +14,10 @@ CREATE TABLE `siret_customer`
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `customer_id` INTEGER NOT NULL,
     `code_siret` VARCHAR(100) NOT NULL,
+    `code_tva_intra` VARCHAR(100) NOT NULL,
     `denomination_unite_legale` VARCHAR(200),
     PRIMARY KEY (`id`),
-    UNIQUE INDEX `customer_id_UNIQUE` (`customer_id`),
+    INDEX `fi_siret_customer_id` (`customer_id`),
     CONSTRAINT `fk_siret_customer_id`
         FOREIGN KEY (`customer_id`)
         REFERENCES `customer` (`id`)

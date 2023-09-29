@@ -1,0 +1,48 @@
+{if $use_siret || $use_tva_intra}
+    <fieldset id="register-info" class="mb-12">
+        {include file="components/smarty/Title/Title.html" type="div" level=4 class="mb-4" title={intl l="Administrative Information" d="siretmanagement.fo.modern"}}
+        <div class="grid grid-cols-1 gap-6">
+            {if $use_siret}
+              <div class="w-1/2 lg:w-1/3">
+                {form_field field="siret"}
+                  {include
+                    file="components/smarty/Input/Input.html"
+                    type="text"
+                    name=$name
+                    id="siret_input"
+                    value={$siret}
+                    label=$label
+                    placeholder={intl l="Numéro SIRET (14 caractères)" d="siretmanagement.fo.modern"}
+                    required=$required
+                  }
+                {/form_field}
+              </div>
+
+              {* Allow address filling from SIRENE database when creating customer account *}
+              {if $mode == 'create'}
+                <div class="text-center" id="fillAddressButton" style="display:none">
+                  <button type="button" class="Button">{intl l="Pré-remplir vos champs adresses" d="siretmanagement.fo.modern"}</button>
+                </div>
+              {/if}
+            {/if}
+
+            {if $use_tva_intra}
+              <div class="w-1/2 lg:w-1/3">
+                {form_field field="tva_intra"}
+                  {include
+                    file="components/smarty/Input/Input.html"
+                    type="text"
+                    name=$name
+                    id="siret_input"
+                    value={$siret}
+                    label=$label
+                    placeholder={intl l="Numéro de TVA Intra-communautaire" d="siretmanagement.fo.modern"}
+                    required=$required
+                  }
+                {/form_field}
+              </div>
+            {/if}
+        </div>
+    </fieldset>
+{/if}
+

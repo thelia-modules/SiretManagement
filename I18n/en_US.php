@@ -1,15 +1,29 @@
 <?php
 
-/*
- * This file is part of the Thelia package.
- * http://www.thelia.net
- *
- * (c) OpenStudio <info@thelia.net>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
-return [
-    // 'an english string' => 'The displayed english string',
-];
+return array(
+    'Clef du consommateur' => 'Consumer key',
+    'Enter the customer Intra-Community VAT Number' => 'Enter the customer Intra-Community VAT Number',
+    'Enter the customer SIRET (14 digits)' => 'Enter the customer SIRET (14 digits)',
+    'Enter the private consumer key for INSEE Sirene API (more details here: https://api.gouv.fr/les-api/sirene_v3)' => 'Enter the private consumer key for INSEE Sirene API (more details here: https://api.gouv.fr/les-api/sirene_v3)',
+    'Enter the public consumer key for INSEE Sirene API (more details here: https://api.gouv.fr/les-api/sirene_v3)' => 'Enter the public consumer key for INSEE Sirene API (more details here: https://api.gouv.fr/les-api/sirene_v3)',
+    'Failed to update customer information' => 'Failed to update customer information',
+    'Failed to validate %item : %err' => 'Failed to validate %item : %err',
+    'If this box is checked, the Intra-Community VAT Number field will be mandatory in customer create and update forms' => 'If this box is checked, the Intra-Community VAT Number field will be mandatory in customer create and update forms',
+    'If this box is checked, the Intra-Community VAT Number field will be shown in customer create and update forms' => 'If this box is checked, the Intra-Community VAT Number field will be shown in customer create and update forms',
+    'If this box is checked, the SIRET field will be mandatory in customer create and update forms' => 'If this box is checked, the SIRET field will be mandatory in customer create and update forms',
+    'If this box is checked, the SIRET field will be shown in customer create and update forms' => 'If this box is checked, the SIRET field will be shown in customer create and update forms',
+    'Intra-Community VAT Number' => 'Intra-Community VAT Number',
+    'Intra-Community VAT Number is required' => 'Intra-Community VAT Number is required',
+    'Invalid %codeType number' => 'Invalid %codeType number',
+    'SIRET' => 'SIRET',
+    'SIRET is required' => 'SIRET is required',
+    'Secret du consommateur' => 'Secret key',
+    'Syntax error' => 'Syntax error',
+    'This Intra-Community VAT Number seems invalid.' => 'This Intra-Community VAT Number seems invalid.',
+    'Undefined SIRENE API error' => 'Undefined SIRENE API error',
+    'Use the Intra-Community VAT Number' => 'Use the Intra-Community VAT Number',
+    'Use the SIRET number' => 'Use the SIRET number',
+    'Wrong length for siren number 9 digits expected' => 'Wrong length for siren number 9 digits expected',
+    'Wrong length for siret number, 14 digits expected' => 'Wrong length for siret number, 14 digits expected',
+    'Wrong length for siret or siren number, 14 or 9 digits expected' => 'Wrong length for siret or siren number, 14 or 9 digits expected',
+);
