@@ -24,13 +24,17 @@ To create an account and get the keys, got to https://api.insee.fr/catalogue/sit
 
 To display input fields to your customer, you have to change register.html and account-update.html.
 
+### register.html
+
 In register.html, add the following hook call :
 
 `{hook name="siret.check" mode='create'}`
 
-To allow automatic filling of address fields, add the followinf hook call :
+To allow automatic filling of address fields, add the following hook call :
 
 `{hook name="siret.js"}`
+
+### account-update.html
 
 In account-update.html, add the following hook call :
 
@@ -38,7 +42,7 @@ In account-update.html, add the following hook call :
 
 The siret.js hook call is not required, as the address fields are not present in the account-update.html file.
 
-A template is provided for defualt and modern template.
+A template is provided for default and modern template.
 
 This module has no dependency on JQuery.
 
@@ -61,7 +65,7 @@ You can override the siret.html file in your own template for a custom integrati
 {/block}
 ```
 
-### Change recommended for `modern` template
+### Suggestion for `modern` template
 
 #### In register.html
 
