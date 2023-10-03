@@ -28,6 +28,7 @@ class Configuration extends BaseForm
                 TextType::class,
                 [
                     'data' => SiretManagement::getConfigValue(SiretManagement::PUBLIC_CONSUMER, null),
+                    'required' => false,
                     'label' => Translator::getInstance()->trans('Clef du consommateur', [], SiretManagement::DOMAIN_NAME),
                     'label_attr' => [
                         'help' => Translator::getInstance()->trans(
@@ -41,6 +42,7 @@ class Configuration extends BaseForm
                 TextType::class,
                 [
                     'data' => SiretManagement::getConfigValue(SiretManagement::PRIVATE_CONSUMER, null),
+                    'required' => false,
                     'label' => Translator::getInstance()->trans('Secret du consommateur', [], SiretManagement::DOMAIN_NAME),
                     'label_attr' => [
                         'help' => Translator::getInstance()->trans(

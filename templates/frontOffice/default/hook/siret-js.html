@@ -17,6 +17,10 @@
 
         fetch(url.replace('_Q_', encodeURIComponent(inputField.value)))
             .then(response => {
+                if (! response.ok) {
+                    throw new Error("Invalid response");
+                }
+
                 return response.json();
             }).then(result => {
                 currentResult = result;

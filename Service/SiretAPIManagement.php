@@ -26,6 +26,10 @@ class SiretAPIManagement
         $valuePublicConsumer = SiretManagement::getConfigValue(SiretManagement::PUBLIC_CONSUMER, null);
         $valuePrivateConsumer = SiretManagement::getConfigValue(SiretManagement::PRIVATE_CONSUMER, null);
 
+        if (empty($valuePublicConsumer) || empty($valuePrivateConsumer)) {
+            throw new \InvalidArgumentException("Siren API credentials are missing, please check SiretManagement module configuration");
+        }
+
         @mkdir( __DIR__.'/../Config/jwt_directory');
 
         return new Sirene([
