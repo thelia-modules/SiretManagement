@@ -22,10 +22,8 @@ class Siret implements ResourceAddonInterface
 {
     use ResourceAddonTrait;
 
-    #[Groups([Customer::GROUP_READ_SINGLE])]
     public ?int $id = null;
 
-    #[Groups([Customer::GROUP_READ_SINGLE])]
     public int $customerId;
     #[Groups([Customer::GROUP_READ_SINGLE, Customer::GROUP_WRITE])]
     public string $codeSiret;
