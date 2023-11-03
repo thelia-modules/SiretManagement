@@ -103,6 +103,9 @@ class Siret implements ResourceAddonInterface
     }
     public static function extendQuery(ModelCriteria $query, Operation $operation = null, array $context = []): void
     {
+        if (SiretCustomerQuery::create()->filterByCustomerId($query->get('customer.id'))->findOne() === null){
+            return;
+        }
         $tableMap = static::getPropelRelatedTableMap();
         $query->useSiretCustomerQuery()->endUse();
 
@@ -115,6 +118,9 @@ class Siret implements ResourceAddonInterface
 
     public function buildFromModel(ActiveRecordInterface $activeRecord, PropelResourceInterface $abstractPropelResource): ResourceAddonInterface
     {
+        if (SiretCustomerQuery::create()->filterByCustomerId($activeRecord->getId())->findOne() === null){
+            return $this;
+        }
         $this->codeSiret = $activeRecord->getVirtualColumn('Siret_code');
         $this->codeTvaIntra = $activeRecord->getVirtualColumn('Siret_code_tva_intra');
         $this->denominationUniteLegale = $activeRecord->getVirtualColumn('Siret_denomination_unite_legale');
