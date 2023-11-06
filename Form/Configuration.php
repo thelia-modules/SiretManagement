@@ -24,6 +24,20 @@ class Configuration extends BaseForm
     {
         $this->formBuilder
             ->add(
+                SiretManagement::API_CHECK_DISABLED,
+                CheckboxType::class,
+                [
+                    'data' => (bool) SiretManagement::getConfigValue(SiretManagement::API_CHECK_DISABLED, false),
+                    'label' => Translator::getInstance()->trans('Disable siret check', [], SiretManagement::DOMAIN_NAME),
+                    'required' => false,
+                    'label_attr' => [
+                        'help' => Translator::getInstance()->trans(
+                            'If this box is unchecked, the SIRET field will be checked by INSEE API at form submit, and will throw error if siret is invalid'
+                        )
+                    ]
+                ]
+            )
+            ->add(
                 SiretManagement::PUBLIC_CONSUMER,
                 TextType::class,
                 [

@@ -79,6 +79,10 @@ class SiretAPIManagement
      */
     public function checkSiret($codeSiret): array
     {
+        if (SiretManagement::getConfigValue(SiretManagement::API_CHECK_DISABLED)) {
+            return [];
+        }
+
         if (\strlen($codeSiret) !== 14) {
             throw new \Exception(Translator::getInstance()->trans('Wrong length for siret number, 14 digits expected'));
         }
@@ -91,6 +95,10 @@ class SiretAPIManagement
      */
     public function checkSiren($codeSiren): array
     {
+        if (SiretManagement::getConfigValue(SiretManagement::API_CHECK_DISABLED)) {
+            return [];
+        }
+        
         if (\strlen($codeSiren) !== 9) {
             throw new \Exception(Translator::getInstance()->trans('Wrong length for siren number 9 digits expected'));
         }

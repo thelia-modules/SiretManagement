@@ -45,6 +45,7 @@ class ConfigurationBackController extends BaseAdminController
                 SiretManagement::SIRET_REQUIRED,
                 SiretManagement::USE_TVA_INTRA,
                 SiretManagement::USE_SIRET,
+                SiretManagement::API_CHECK_DISABLED,
             ];
 
             foreach ($names as $name) {

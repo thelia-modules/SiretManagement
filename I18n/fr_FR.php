@@ -2,6 +2,7 @@
 
 return array(
     'Clef du consommateur' => 'Clef du consommateur',
+    'Disable siret check' => 'Désactiver le contrôle du siret',
     'Enter the customer Intra-Community VAT Number' => 'Indiquez le numéro de TVA intra-communautaire du client',
     'Enter the customer SIRET (14 digits)' => 'Indiquez le numéro SIRET du client (14 chiffre)',
     'Enter the private consumer key for INSEE Sirene API (more details here: https://api.gouv.fr/les-api/sirene_v3)' => 'Indiquez la clef privée consommateur de l\'API INSEE Sirene (plus de détails ici: https://api.gouv.fr/les-api/sirene_v3)',
@@ -12,6 +13,7 @@ return array(
     'If this box is checked, the Intra-Community VAT Number field will be shown in customer create and update forms' => 'Si cette case est cochée, la saisie du numéro SIRET sera proposée à vos clients, sans être obligatoire, sauf si vous cochez la case ci-dessous',
     'If this box is checked, the SIRET field will be mandatory in customer create and update forms' => 'Si cette case est cochée, la saisie du SIRET par vos clients sera obligatoire',
     'If this box is checked, the SIRET field will be shown in customer create and update forms' => 'Si cette case est cochée, la saisie du numéro de TVA intra-communautaire sera proposée à vos clients, sans être obligatoire, sauf si vous cochez la case ci-dessous',
+    'If this box is unchecked, the SIRET field will be checked by INSEE API at form submit, and will throw error if siret is invalid' => 'Si cette case n\'est pas cochée, le champ SIRET sera vérifié par l\'API INSEE lors de la soumission du formulaire, et générera une erreur si le siret n\'est pas valide.',
     'Intra-Community VAT Number' => 'Numéro de TVA intra-communautaire ',
     'Intra-Community VAT Number is required' => 'Saisie du numéro de TVA intra-communautaire obligatoire',
     'Invalid %codeType number' => 'code %codeType invalide',

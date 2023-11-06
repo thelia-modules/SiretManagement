@@ -29,6 +29,7 @@ class SiretManagement extends BaseModule
     public const PUBLIC_CONSUMER = 'public_consumer';
     public const SIRET_REQUIRED = 'siret_required';
     public const TVA_INTRA_REQUIRED = 'tva_intra_required';
+    public const API_CHECK_DISABLED = 'api_check_disabled';
 
     public const SIRET = 'siret';
     public const TVA_INTRA = 'tva_intra';
