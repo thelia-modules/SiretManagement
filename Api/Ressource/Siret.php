@@ -130,7 +130,7 @@ class Siret implements ResourceAddonInterface
     {
         $this->codeSiret = $data['codeSiret'];
         $this->codeTvaIntra = $data['codeTvaIntra'];
-        $this->denominationUniteLegale = $data['denominationUniteLegale'];
+        $this->denominationUniteLegale = $data['denominationUniteLegale'] ?? null;
         return $this;
     }
 
