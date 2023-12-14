@@ -26,10 +26,10 @@ class Siret implements ResourceAddonInterface
 
     public int $customerId;
     #[Groups([Customer::GROUP_READ_SINGLE, Customer::GROUP_WRITE])]
-    public string $codeSiret;
+    public ?string $codeSiret;
 
     #[Groups([Customer::GROUP_READ_SINGLE, Customer::GROUP_WRITE])]
-    public string $codeTvaIntra;
+    public ?string $codeTvaIntra;
 
     #[Groups([Customer::GROUP_READ_SINGLE, Customer::GROUP_WRITE])]
     public ?string $denominationUniteLegale;
@@ -119,9 +119,9 @@ class Siret implements ResourceAddonInterface
         if (SiretCustomerQuery::create()->filterByCustomerId($activeRecord->getId())->findOne() === null){
             return $this;
         }
-        $this->codeSiret = $activeRecord->getVirtualColumn('Siret_code');
-        $this->codeTvaIntra = $activeRecord->getVirtualColumn('Siret_code_tva_intra');
-        $this->denominationUniteLegale = $activeRecord->getVirtualColumn('Siret_denomination_unite_legale');
+        $this->codeSiret = $activeRecord->hasVirtualColumn('Siret_code') ? $activeRecord->getVirtualColumn('Siret_code') : null;
+        $this->codeTvaIntra = $activeRecord->hasVirtualColumn('Siret_code_tva_intra') ? $activeRecord->getVirtualColumn('Siret_code_tva_intra') : null;
+        $this->denominationUniteLegale = $activeRecord->hasVirtualColumn('Siret_denomination_unite_legale') ? $activeRecord->getVirtualColumn('Siret_denomination_unite_legale') : null;
 
         return $this;
     }
