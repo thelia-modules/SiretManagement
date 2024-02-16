@@ -3,7 +3,6 @@
 namespace SiretManagement\Api\Ressource;
 
 use ApiPlatform\Metadata\Operation;
-use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\ModelCriteria;
 use Propel\Runtime\ActiveRecord\ActiveRecordInterface;
 use Propel\Runtime\Map\TableMap;
@@ -11,8 +10,6 @@ use SiretManagement\Model\Map\SiretCustomerTableMap;
 use SiretManagement\Model\SiretCustomer;
 use SiretManagement\Model\SiretCustomerQuery;
 use Symfony\Component\Serializer\Annotation\Groups;
-use Symfony\Component\Serializer\Annotation\Ignore;
-use Thelia\Api\Resource\Cart;
 use Thelia\Api\Resource\Customer;
 use Thelia\Api\Resource\PropelResourceInterface;
 use Thelia\Api\Resource\ResourceAddonInterface;
@@ -25,13 +22,13 @@ class Siret implements ResourceAddonInterface
     public ?int $id = null;
 
     public int $customerId;
-    #[Groups([Customer::GROUP_READ_SINGLE, Customer::GROUP_WRITE])]
+    #[Groups([Customer::GROUP_ADMIN_READ, Customer::GROUP_ADMIN_WRITE])]
     public ?string $codeSiret;
 
-    #[Groups([Customer::GROUP_READ_SINGLE, Customer::GROUP_WRITE])]
+    #[Groups([Customer::GROUP_ADMIN_READ, Customer::GROUP_ADMIN_WRITE])]
     public ?string $codeTvaIntra;
 
-    #[Groups([Customer::GROUP_READ_SINGLE, Customer::GROUP_WRITE])]
+    #[Groups([Customer::GROUP_ADMIN_READ, Customer::GROUP_ADMIN_WRITE])]
     public ?string $denominationUniteLegale;
 
     public function getId(): ?int
