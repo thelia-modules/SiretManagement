@@ -10,7 +10,7 @@
  * file that was distributed with this source code.
  */
 
-namespace SiretManagement\EventListeners;
+namespace SiretManagement\EventListener;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
 use SiretManagement\Event\CheckDataEvent;
