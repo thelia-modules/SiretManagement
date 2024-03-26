@@ -55,7 +55,7 @@ class SiretAPIManagement
     {
         $codeLength = \strlen($code);
         if (!\in_array($codeLength, [9, 14])) {
-            throw new \Exception(Translator::getInstance()->trans('Wrong length for siret or siren number, 14 or 9 digits expected'));
+            throw new \Exception(Translator::getInstance()->trans('Wrong length for siret or siren number, 14 or 9 digits expected', [], SiretManagement::DOMAIN_NAME));
         }
         $codeType = \strlen($code) === 14 ? 'siret' : 'siren';
 
