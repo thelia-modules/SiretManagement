@@ -15,6 +15,7 @@
 
 namespace SiretManagement\Service;
 
+use SiretManagement\SiretManagement;
 use Thelia\Core\Translation\Translator;
 
 class IntraCommunityVatChecker
@@ -56,7 +57,7 @@ class IntraCommunityVatChecker
 
         if (! preg_match($regexp, $vatNumber)) {
             throw new \InvalidArgumentException(
-                Translator::getInstance()->trans("This Intra-Community VAT Number seems invalid.")
+                Translator::getInstance()->trans("This Intra-Community VAT Number seems invalid.", [], SiretManagement::DOMAIN_NAME)
             );
         }
 
