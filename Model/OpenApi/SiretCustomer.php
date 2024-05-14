@@ -18,7 +18,7 @@ class SiretCustomer extends BaseApiModel
     protected string $codeTvaIntra;
 
     #[Property(type: "string")]
-    protected string $denominationUniteLegale;
+    protected ?string $denominationUniteLegale;
 
     public function getCodeSiret(): string
     {
@@ -42,12 +42,12 @@ class SiretCustomer extends BaseApiModel
         return $this;
     }
 
-    public function getDenominationUniteLegale(): string
+    public function getDenominationUniteLegale(): ?string
     {
         return $this->denominationUniteLegale;
     }
 
-    public function setDenominationUniteLegale(string $denominationUniteLegale): SiretCustomer
+    public function setDenominationUniteLegale(?string $denominationUniteLegale): SiretCustomer
     {
         $this->denominationUniteLegale = $denominationUniteLegale;
         return $this;
