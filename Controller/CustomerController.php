@@ -29,7 +29,7 @@ class CustomerController extends BaseAdminController
      */
     public function saveAction(int $customerId, Translator $translator): Response
     {
-        if (null === $siretInfo = SiretCustomerQuery::create()->findPk($customerId)) {
+        if (null === $siretInfo = SiretCustomerQuery::create()->findOneByCustomerId($customerId)) {
             $siretInfo = (new SiretCustomer())->setCustomerId($customerId);
         }
 
