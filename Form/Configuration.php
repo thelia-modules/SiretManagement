@@ -33,6 +33,7 @@ class Configuration extends BaseForm
                     'label_attr' => [
                         'help' => Translator::getInstance()->trans(
                             'If this box is unchecked, the SIRET field will be checked by INSEE API at form submit, and will throw error if siret is invalid'
+                            , [], SiretManagement::DOMAIN_NAME
                         )
                     ]
                 ]
@@ -47,6 +48,7 @@ class Configuration extends BaseForm
                     'label_attr' => [
                         'help' => Translator::getInstance()->trans(
                             'Enter the public consumer key for INSEE Sirene API (more details here: https://api.gouv.fr/les-api/sirene_v3)'
+                            , [], SiretManagement::DOMAIN_NAME
                         )
                     ]
                 ]
@@ -61,6 +63,7 @@ class Configuration extends BaseForm
                     'label_attr' => [
                         'help' => Translator::getInstance()->trans(
                             'Enter the private consumer key for INSEE Sirene API (more details here: https://api.gouv.fr/les-api/sirene_v3)'
+                            , [], SiretManagement::DOMAIN_NAME
                         )
                     ]
                 ]
@@ -75,6 +78,7 @@ class Configuration extends BaseForm
                     'label_attr' => [
                         'help' => Translator::getInstance()->trans(
                             'If this box is checked, the SIRET field will be mandatory in customer create and update forms'
+                            , [], SiretManagement::DOMAIN_NAME
                         )
                     ]
                 ]
@@ -89,6 +93,7 @@ class Configuration extends BaseForm
                     'label_attr' => [
                         'help' => Translator::getInstance()->trans(
                             'If this box is checked, the Intra-Community VAT Number field will be mandatory in customer create and update forms'
+                            , [], SiretManagement::DOMAIN_NAME
                         )
                     ]
                 ]
@@ -103,6 +108,7 @@ class Configuration extends BaseForm
                     'label_attr' => [
                         'help' => Translator::getInstance()->trans(
                             'If this box is checked, the SIRET field will be shown in customer create and update forms'
+                            , [], SiretManagement::DOMAIN_NAME
                         )
                     ]
                 ]
@@ -117,6 +123,7 @@ class Configuration extends BaseForm
                     'label_attr' => [
                         'help' => Translator::getInstance()->trans(
                             'If this box is checked, the Intra-Community VAT Number field will be shown in customer create and update forms'
+                            , [], SiretManagement::DOMAIN_NAME
                         )
                     ]
                 ]

@@ -84,7 +84,7 @@ class SiretAPIManagement
         }
 
         if (\strlen($codeSiret) !== 14) {
-            throw new \Exception(Translator::getInstance()->trans('Wrong length for siret number, 14 digits expected'));
+            throw new \Exception(Translator::getInstance()->trans('Wrong length for siret number, 14 digits expected', [], SiretManagement::DOMAIN_NAME));
         }
 
         return $this->getData($codeSiret);
@@ -100,7 +100,7 @@ class SiretAPIManagement
         }
         
         if (\strlen($codeSiren) !== 9) {
-            throw new \Exception(Translator::getInstance()->trans('Wrong length for siren number 9 digits expected'));
+            throw new \Exception(Translator::getInstance()->trans('Wrong length for siren number 9 digits expected', [], SiretManagement::DOMAIN_NAME));
         }
 
         return $this->getData($codeSiren);
