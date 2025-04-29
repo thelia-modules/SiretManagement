@@ -12,28 +12,25 @@
 namespace SiretManagement\Controller;
 
 use SiretManagement\Service\SiretAPIManagement;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
-use Thelia\Controller\Front\BaseFrontController;
+use Symfony\Component\HttpKernel\Attribute\AsController;
 use Thelia\Core\HttpFoundation\Request;
 
-class SiretSearchController extends BaseFrontController
+#[AsController]
+class SiretSearchController extends AbstractController
 {
     public function __construct(protected SiretAPIManagement $siretAPIManagement)
     {
     }
 
-    /**
-     * @throws \Exception
-     *
-     * @Route("/register/searchSiret", name="_search_siret", methods="GET")
-     */
-    public function siretResponse(Request $request): Response
+    public function __invoke(Request $request): Response
     {
         $siret = $request->get('siret');
 
-        $data = $this->siretAPIManagement->getData(preg_replace("/\D/", '', $siret));
+        $data = [$this->siretAPIManagement->getData(preg_replace("/\D/", '', $siret))];
 
-        return $this->jsonResponse(json_encode($data, JSON_THROW_ON_ERROR));
+        return new JsonResponse(json_encode($data, JSON_THROW_ON_ERROR));
     }
 }
