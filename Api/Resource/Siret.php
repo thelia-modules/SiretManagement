@@ -1,11 +1,14 @@
 <?php
 
-namespace SiretManagement\Api\Ressource;
+namespace SiretManagement\Api\Resource;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Operation;
 use Propel\Runtime\ActiveQuery\ModelCriteria;
 use Propel\Runtime\ActiveRecord\ActiveRecordInterface;
 use Propel\Runtime\Map\TableMap;
+use SiretManagement\Controller\SiretSearchController;
 use SiretManagement\Model\Map\SiretCustomerTableMap;
 use SiretManagement\Model\SiretCustomer;
 use SiretManagement\Model\SiretCustomerQuery;
@@ -15,6 +18,44 @@ use Thelia\Api\Resource\PropelResourceInterface;
 use Thelia\Api\Resource\ResourceAddonInterface;
 use Thelia\Api\Resource\ResourceAddonTrait;
 
+#[ApiResource(
+    operations: [
+        new Get(
+            uriTemplate: '/register/searchSiret',
+            controller: SiretSearchController::class,
+            openapiContext: [
+                'parameters' => [
+                    [
+                        'name' => 'siret',
+                        'in' => 'query',
+                        'required' => true,
+                        'schema' => ['type' => 'string'],
+                        'description' => 'Numéro SIRET à rechercher'
+                    ]
+                ],
+                'responses' => [
+                    '200' => [
+                        'description' => 'Informations sur l\'entreprise',
+                        'content' => [
+                            'application/json' => [
+                                'example' => [
+                                    'siret' => '12345678900010',
+                                    'nom' => 'Nom de la société',
+                                    'adresse' => 'Adresse',
+                                    'ville' => 'Paris'
+                                ]
+                            ]
+                        ]
+                    ],
+                    '400' => ['description' => 'SIRET manquant'],
+                    '500' => ['description' => 'Erreur interne']
+                ]
+            ],
+            read: false,
+        )
+    ],
+    paginationEnabled: false,
+)]
 class Siret implements ResourceAddonInterface
 {
     use ResourceAddonTrait;
@@ -22,13 +63,13 @@ class Siret implements ResourceAddonInterface
     public ?int $id = null;
 
     public int $customerId;
-    #[Groups([Customer::GROUP_ADMIN_READ, Customer::GROUP_ADMIN_WRITE])]
+    #[Groups([Customer::GROUP_ADMIN_READ, Customer::GROUP_ADMIN_WRITE,Customer::GROUP_FRONT_WRITE,Customer::GROUP_FRONT_READ_SINGLE])]
     public ?string $codeSiret;
 
-    #[Groups([Customer::GROUP_ADMIN_READ, Customer::GROUP_ADMIN_WRITE])]
+    #[Groups([Customer::GROUP_ADMIN_READ, Customer::GROUP_ADMIN_WRITE,Customer::GROUP_FRONT_WRITE,Customer::GROUP_FRONT_READ_SINGLE])]
     public ?string $codeTvaIntra;
 
-    #[Groups([Customer::GROUP_ADMIN_READ, Customer::GROUP_ADMIN_WRITE])]
+    #[Groups([Customer::GROUP_ADMIN_READ, Customer::GROUP_ADMIN_WRITE,Customer::GROUP_FRONT_WRITE,Customer::GROUP_FRONT_READ_SINGLE])]
     public ?string $denominationUniteLegale;
 
     public function getId(): ?int
