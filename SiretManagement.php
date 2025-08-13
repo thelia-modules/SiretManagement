@@ -39,7 +39,7 @@ class SiretManagement extends BaseModule
     public const CHECK_SIRET_EVENT = 'SiretManagement.CHECK_SIRET_EVENT';
     public const CHECK_VAT_EVENT = 'SiretManagement.CHECK_VAT_EVENT';
 
-    public function getHooks()
+    public function getHooks(): array
     {
         return [
             [
