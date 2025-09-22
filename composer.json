@@ -5,7 +5,7 @@
   "type": "thelia-module",
   "require": {
     "thelia/installer": "~1.1",
-    "simondevelop/sirene": "^1.1"
+    "simondevelop/sirene": "^2.1"
   },
   "extra": {
     "installer-name": "SiretManagement"
