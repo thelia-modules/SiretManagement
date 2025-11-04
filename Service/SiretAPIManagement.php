@@ -23,19 +23,15 @@ class SiretAPIManagement
      */
     private function getSirenClient(): Sirene
     {
-        $valuePublicConsumer = SiretManagement::getConfigValue(SiretManagement::PUBLIC_CONSUMER, null);
-        $valuePrivateConsumer = SiretManagement::getConfigValue(SiretManagement::PRIVATE_CONSUMER, null);
+        $apiKey = SiretManagement::getConfigValue(SiretManagement::API_KEY, null);
 
-        if (empty($valuePublicConsumer) || empty($valuePrivateConsumer)) {
-            throw new \InvalidArgumentException("Siren API credentials are missing, please check SiretManagement module configuration");
+        if (empty($apiKey)) {
+            throw new \InvalidArgumentException("Siren API key is missing, please check SiretManagement module configuration");
         }
 
         @mkdir( __DIR__.'/../Config/jwt_directory');
 
-        return new Sirene([
-            'secret' => base64_encode("$valuePublicConsumer:$valuePrivateConsumer"),
-            'jwt_path' => __DIR__.'/../Config/jwt_directory',
-        ]);
+        return new Sirene($apiKey);
     }
 
     /**
