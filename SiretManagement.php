@@ -25,8 +25,7 @@ class SiretManagement extends BaseModule
     /** @var string */
     public const DOMAIN_NAME = 'siretmanagement';
 
-    public const PRIVATE_CONSUMER = 'private_consumer';
-    public const PUBLIC_CONSUMER = 'public_consumer';
+    public const API_KEY = 'api_key';
     public const SIRET_REQUIRED = 'siret_required';
     public const TVA_INTRA_REQUIRED = 'tva_intra_required';
     public const API_CHECK_DISABLED = 'api_check_disabled';
