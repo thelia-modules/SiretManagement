@@ -5,6 +5,8 @@ namespace SiretManagement\Api\Resource;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Operation;
+use ApiPlatform\OpenApi\Model\Operation as OpenApiOperation;
+use ApiPlatform\OpenApi\Model\Parameter;
 use Propel\Runtime\ActiveQuery\ModelCriteria;
 use Propel\Runtime\ActiveRecord\ActiveRecordInterface;
 use Propel\Runtime\Map\TableMap;
@@ -23,34 +25,11 @@ use Thelia\Api\Resource\ResourceAddonTrait;
         new Get(
             uriTemplate: '/register/searchSiret',
             controller: SiretSearchController::class,
-            openapiContext: [
-                'parameters' => [
-                    [
-                        'name' => 'siret',
-                        'in' => 'query',
-                        'required' => true,
-                        'schema' => ['type' => 'string'],
-                        'description' => 'Numéro SIRET à rechercher'
-                    ]
+            openapi: new OpenApiOperation(
+                parameters: [
+                    new Parameter(name: 'siret', in: 'query', required: true, schema: ['type' => 'string'], description: 'Numéro SIRET à rechercher'),
                 ],
-                'responses' => [
-                    '200' => [
-                        'description' => 'Informations sur l\'entreprise',
-                        'content' => [
-                            'application/json' => [
-                                'example' => [
-                                    'siret' => '12345678900010',
-                                    'nom' => 'Nom de la société',
-                                    'adresse' => 'Adresse',
-                                    'ville' => 'Paris'
-                                ]
-                            ]
-                        ]
-                    ],
-                    '400' => ['description' => 'SIRET manquant'],
-                    '500' => ['description' => 'Erreur interne']
-                ]
-            ],
+            ),
             read: false,
         )
     ],
