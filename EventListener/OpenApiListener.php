@@ -75,7 +75,7 @@ class OpenApiListener implements EventSubscriberInterface
             ->save();
     }
 
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         $events = [];
         if (class_exists('OpenApi\Events\ModelExtendDataEvent')){

@@ -17,7 +17,7 @@ use SiretManagement\Model\SiretCustomer;
 use SiretManagement\Model\SiretCustomerQuery;
 use SiretManagement\SiretManagement;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Thelia\Controller\Admin\BaseAdminController;
 use Thelia\Core\Translation\Translator;
 use Thelia\Form\Exception\FormValidationException;
@@ -25,8 +25,8 @@ use Thelia\Form\Exception\FormValidationException;
 class CustomerController extends BaseAdminController
 {
     /**
-     * @Route("/admin/module/siret/customer/{customerId}", name="_customer_siret_data", methods="POST")
      */
+    #[Route('/admin/module/siret/customer/{customerId}', name: '_customer_siret_data', methods: ['POST'])]
     public function saveAction(int $customerId, Translator $translator): Response
     {
         if (null === $siretInfo = SiretCustomerQuery::create()->findOneByCustomerId($customerId)) {

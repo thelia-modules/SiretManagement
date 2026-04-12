@@ -14,7 +14,7 @@ namespace SiretManagement\Controller;
 
 use SiretManagement\Form\Configuration;
 use SiretManagement\SiretManagement;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Thelia\Controller\Admin\BaseAdminController;
 use Thelia\Core\HttpFoundation\Request;
 use Thelia\Core\Security\AccessManager;
@@ -25,8 +25,8 @@ use Thelia\Tools\URL;
 class ConfigurationBackController extends BaseAdminController
 {
     /**
-     * @Route("/admin/module/siret/configuration/save", name="_cofiguration_siret", methods="POST")
      */
+    #[Route('/admin/module/siret/configuration/save', name: '_cofiguration_siret', methods: ['POST'])]
     public function saveAction(Request $request): mixed
     {
         if (null !== $response = $this->checkAuth([AdminResources::MODULE], ['siretmanagement'], AccessManager::UPDATE)) {

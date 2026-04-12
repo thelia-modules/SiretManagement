@@ -116,7 +116,7 @@ class RegisterListener implements EventSubscriberInterface
         }
     }
 
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         return [
             TheliaEvents::FORM_BEFORE_BUILD . ".thelia_customer_create" => ['addSiretFieldsToCustomerForm', 1],
