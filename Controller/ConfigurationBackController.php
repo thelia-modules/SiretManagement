@@ -52,7 +52,7 @@ class ConfigurationBackController extends BaseAdminController
                 SiretManagement::setConfigValue($name, $data[$name]);
             }
 
-            if ($request->get('save_mode') === 'stay') {
+            if ($request->request->get('save_mode') === 'stay') {
                 // If we have to stay on the same page, redisplay the configuration page/
                 return $this->generateRedirect(URL::getInstance()?->absoluteUrl('/admin/module/SiretManagement'));
             }

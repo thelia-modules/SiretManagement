@@ -27,7 +27,7 @@ class SiretSearchController extends AbstractController
 
     public function __invoke(Request $request): Response
     {
-        $siret = $request->get('siret');
+        $siret = $request->query->get('siret');
 
         $data = [$this->siretAPIManagement->getData(preg_replace("/\D/", '', $siret))];
 
