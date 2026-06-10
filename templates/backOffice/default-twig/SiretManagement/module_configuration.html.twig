@@ -1,0 +1,130 @@
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">{{ 'Edit your siret API configuration.'|trans({}, 'siretmanagement.bo.default') }}</h5>
+    </div>
+    <div class="card-body">
+        {{ form_start(form, {action: path('_cofiguration_siret'), method: 'POST', attr: {enctype: 'multipart/form-data'}}) }}
+
+        <input type="hidden" name="{{ form.vars.full_name }}[success_url]" value="{{ path('admin.module.configure', {module_code: 'SiretManagement'}) }}">
+        <input type="hidden" name="{{ form.vars.full_name }}[error_url]" value="{{ path('admin.module.configure', {module_code: 'SiretManagement'}) }}">
+
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="form-check form-switch">
+                    <input class="form-check-input{{ form.api_check_disabled.vars.errors|length ? ' is-invalid' : '' }}"
+                           type="checkbox"
+                           id="api_check_disabled"
+                           name="{{ form.api_check_disabled.vars.full_name }}"
+                           value="1"
+                           {{ form.api_check_disabled.vars.data ? 'checked' : '' }}>
+                    {% do form.api_check_disabled.setRendered %}
+                    <label class="form-check-label" for="api_check_disabled">
+                        {{ form.api_check_disabled.vars.label }}
+                    </label>
+                    {% if form.api_check_disabled.vars.label_attr.help is defined %}
+                        <div class="form-text">{{ form.api_check_disabled.vars.label_attr.help }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                {{ form_label(form.public_consumer, null, {label_attr: {class: 'form-label'}}) }}
+                {{ form_widget(form.public_consumer, {attr: {class: 'form-control' ~ (form.public_consumer.vars.errors|length ? ' is-invalid' : '')}}) }}
+                {% if form.public_consumer.vars.label_attr.help is defined %}
+                    <div class="form-text">{{ form.public_consumer.vars.label_attr.help }}</div>
+                {% endif %}
+                {{ form_errors(form.public_consumer) }}
+            </div>
+            <div class="col-md-6">
+                {{ form_label(form.private_consumer, null, {label_attr: {class: 'form-label'}}) }}
+                {{ form_widget(form.private_consumer, {attr: {class: 'form-control' ~ (form.private_consumer.vars.errors|length ? ' is-invalid' : '')}}) }}
+                {% if form.private_consumer.vars.label_attr.help is defined %}
+                    <div class="form-text">{{ form.private_consumer.vars.label_attr.help }}</div>
+                {% endif %}
+                {{ form_errors(form.private_consumer) }}
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <div class="form-check form-switch mb-2">
+                    <input class="form-check-input{{ form.use_siret.vars.errors|length ? ' is-invalid' : '' }}"
+                           type="checkbox"
+                           id="use_siret"
+                           name="{{ form.use_siret.vars.full_name }}"
+                           value="1"
+                           {{ form.use_siret.vars.data ? 'checked' : '' }}>
+                    {% do form.use_siret.setRendered %}
+                    <label class="form-check-label" for="use_siret">
+                        {{ form.use_siret.vars.label }}
+                    </label>
+                    {% if form.use_siret.vars.label_attr.help is defined %}
+                        <div class="form-text">{{ form.use_siret.vars.label_attr.help }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-check form-switch">
+                    <input class="form-check-input{{ form.siret_required.vars.errors|length ? ' is-invalid' : '' }}"
+                           type="checkbox"
+                           id="siret_required"
+                           name="{{ form.siret_required.vars.full_name }}"
+                           value="1"
+                           {{ form.siret_required.vars.data ? 'checked' : '' }}>
+                    {% do form.siret_required.setRendered %}
+                    <label class="form-check-label" for="siret_required">
+                        {{ form.siret_required.vars.label }}
+                    </label>
+                    {% if form.siret_required.vars.label_attr.help is defined %}
+                        <div class="form-text">{{ form.siret_required.vars.label_attr.help }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-check form-switch mb-2">
+                    <input class="form-check-input{{ form.use_tva_intra.vars.errors|length ? ' is-invalid' : '' }}"
+                           type="checkbox"
+                           id="use_tva_intra"
+                           name="{{ form.use_tva_intra.vars.full_name }}"
+                           value="1"
+                           {{ form.use_tva_intra.vars.data ? 'checked' : '' }}>
+                    {% do form.use_tva_intra.setRendered %}
+                    <label class="form-check-label" for="use_tva_intra">
+                        {{ form.use_tva_intra.vars.label }}
+                    </label>
+                    {% if form.use_tva_intra.vars.label_attr.help is defined %}
+                        <div class="form-text">{{ form.use_tva_intra.vars.label_attr.help }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-check form-switch">
+                    <input class="form-check-input{{ form.tva_intra_required.vars.errors|length ? ' is-invalid' : '' }}"
+                           type="checkbox"
+                           id="tva_intra_required"
+                           name="{{ form.tva_intra_required.vars.full_name }}"
+                           value="1"
+                           {{ form.tva_intra_required.vars.data ? 'checked' : '' }}>
+                    {% do form.tva_intra_required.setRendered %}
+                    <label class="form-check-label" for="tva_intra_required">
+                        {{ form.tva_intra_required.vars.label }}
+                    </label>
+                    {% if form.tva_intra_required.vars.label_attr.help is defined %}
+                        <div class="form-text">{{ form.tva_intra_required.vars.label_attr.help }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save me-1"></i>
+                {{ 'Save'|trans({}, 'siretmanagement.bo.default') }}
+            </button>
+            <a href="{{ path('admin.module') }}" class="btn btn-secondary">
+                {{ 'Cancel'|trans({}, 'siretmanagement.bo.default') }}
+            </a>
+        </div>
+
+        {{ form_rest(form) }}
+        {{ form_end(form, {render_rest: false}) }}
+    </div>
+</div>

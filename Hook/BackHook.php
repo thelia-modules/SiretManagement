@@ -12,16 +12,44 @@
 
 namespace SiretManagement\Hook;
 
+use SiretManagement\Form\Configuration;
+use SiretManagement\Form\CustomerForm;
 use SiretManagement\Model\SiretCustomerQuery;
 use SiretManagement\SiretManagement;
 use Thelia\Core\Event\Hook\HookRenderEvent;
+use Thelia\Core\Form\TheliaFormFactory;
 use Thelia\Core\Hook\BaseHook;
+use Thelia\Core\Template\Parser\ParserResolver;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class BackHook extends BaseHook
 {
+    public function __construct(
+        private readonly TheliaFormFactory $formFactory,
+        ?EventDispatcherInterface $dispatcher = null,
+        ?ParserResolver $parserResolver = null,
+    ) {
+        parent::__construct($dispatcher, $parserResolver);
+    }
+
+    public static function getSubscribedHooks(): array
+    {
+        return [
+            'module.configuration' => [
+                ['type' => 'back', 'method' => 'onModuleConfiguration'],
+            ],
+            'customer.edit' => [
+                ['type' => 'back', 'method' => 'onCustomerEdit'],
+            ],
+        ];
+    }
+
     public function onModuleConfiguration(HookRenderEvent $event): void
     {
-        $event->add($this->render('module_configuration.html'));
+        $form = $this->formFactory->createForm(Configuration::getName());
+        $event->add($this->render('SiretManagement/module_configuration.html.twig', [
+            'form' => $form->createView()->getView(),
+        ]));
     }
 
     public function onCustomerEdit(HookRenderEvent $event): void
@@ -30,20 +58,23 @@ class BackHook extends BaseHook
 
         if (null !== $siretInfo = SiretCustomerQuery::create()->findOneByCustomerId(
             $event->getArgument('customer_id')
-            )
-        ) {
+        )) {
             $tva = $siretInfo->getCodeTvaIntra();
             $siret = $siretInfo->getCodeSiret();
         }
 
+        $form = $this->formFactory->createForm(CustomerForm::getName());
+
         $event->add(
             $this->render(
-            'customer-edit.html',
+                'SiretManagement/customer-edit.html.twig',
                 [
+                    'form' => $form->createView()->getView(),
                     'use_tva_intra' => (bool) SiretManagement::getConfigValue(SiretManagement::USE_TVA_INTRA, true),
                     'use_siret' => (bool) SiretManagement::getConfigValue(SiretManagement::USE_SIRET, true),
                     'tva_intra' => $tva,
-                    'siret' => $siret
+                    'siret' => $siret,
+                    'customer_id' => $event->getArgument('customer_id'),
                 ]
             )
         );

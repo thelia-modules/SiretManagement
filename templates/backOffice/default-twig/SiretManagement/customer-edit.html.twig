@@ -1,0 +1,49 @@
+{% if use_siret or use_tva_intra %}
+<div class="row mt-4" id="siret-management">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">{{ 'Customer administrative information'|trans({}, 'siretmanagement.bo.default') }}</h5>
+            </div>
+            <div class="card-body">
+                {{ form_start(form, {action: path('_customer_siret_data', {customerId: customer_id}), method: 'POST'}) }}
+
+                <input type="hidden" name="{{ form.vars.full_name }}[success_url]" value="/admin/customer/update?customer_id={{ customer_id }}#siret-management">
+                <input type="hidden" name="{{ form.vars.full_name }}[error_url]" value="/admin/customer/update?customer_id={{ customer_id }}#siret-management">
+
+                <div class="row mb-3">
+                    {% if use_siret %}
+                    <div class="col-md-6">
+                        {{ form_label(form.siret, null, {label_attr: {class: 'form-label'}}) }}
+                        {{ form_widget(form.siret, {attr: {class: 'form-control' ~ (form.siret.vars.errors|length ? ' is-invalid' : ''), value: siret}}) }}
+                        {% if form.siret.vars.label_attr.help is defined %}
+                            <div class="form-text">{{ form.siret.vars.label_attr.help }}</div>
+                        {% endif %}
+                        {{ form_errors(form.siret) }}
+                    </div>
+                    {% endif %}
+
+                    {% if use_tva_intra %}
+                    <div class="col-md-6">
+                        {{ form_label(form.tva_intra, null, {label_attr: {class: 'form-label'}}) }}
+                        {{ form_widget(form.tva_intra, {attr: {class: 'form-control' ~ (form.tva_intra.vars.errors|length ? ' is-invalid' : ''), value: tva_intra}}) }}
+                        {% if form.tva_intra.vars.label_attr.help is defined %}
+                            <div class="form-text">{{ form.tva_intra.vars.label_attr.help }}</div>
+                        {% endif %}
+                        {{ form_errors(form.tva_intra) }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save me-1"></i>
+                    {{ 'Save'|trans({}, 'siretmanagement.bo.default') }}
+                </button>
+
+                {{ form_rest(form) }}
+                {{ form_end(form, {render_rest: false}) }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}

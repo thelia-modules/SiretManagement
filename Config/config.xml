@@ -4,15 +4,4 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://thelia.net/schema/dic/config http://thelia.net/schema/dic/config/thelia-1.0.xsd">
 
-  <hooks>
-      <hook id="siret.hook" class="SiretManagement\Hook\FrontHook">
-          <tag name="hook.event_listener" event="siret.js" type="front" method="onSiretJs" />
-          <tag name="hook.event_listener" event="siret.check" type="front" method="onSiretCheck" />
-      </hook>
-
-      <hook id="siret.back.hook" class="SiretManagement\Hook\BackHook" scope="request">
-          <tag name="hook.event_listener" event="module.configuration" type="back" method="onModuleConfiguration"/>
-          <tag name="hook.event_listener" event="customer.edit" type="back" method="onCustomerEdit" />
-      </hook>
-  </hooks>
 </config>

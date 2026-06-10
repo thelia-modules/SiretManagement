@@ -19,6 +19,18 @@ use Thelia\Core\Hook\BaseHook;
 
 class FrontHook extends BaseHook
 {
+    public static function getSubscribedHooks(): array
+    {
+        return [
+            'siret.js' => [
+                ['type' => 'front', 'method' => 'onSiretJs'],
+            ],
+            'siret.check' => [
+                ['type' => 'front', 'method' => 'onSiretCheck'],
+            ],
+        ];
+    }
+
     public function onSiretJs(HookRenderEvent $event): void
     {
         $event->add(
