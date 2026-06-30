@@ -57,18 +57,26 @@ class RegisterListener implements EventSubscriberInterface
 
     public function createCustomer(CustomerCreateOrUpdateEvent $event): void
     {
+        $request = $this->requestStack->getCurrentRequest();
+        $formName = CustomerCreateForm::getName();
+        $data = $request?->attributes->get($formName, $request->query->get($formName, $request->request->get($formName)));
+
         $this->saveCustomerData(
-            $this->requestStack->getCurrentRequest()->get(CustomerCreateForm::getName())[SiretManagement::SIRET] ?? '',
-            $this->requestStack->getCurrentRequest()->get(CustomerCreateForm::getName())[SiretManagement::TVA_INTRA] ?? '',
+            $data[SiretManagement::SIRET] ?? '',
+            $data[SiretManagement::TVA_INTRA] ?? '',
             $event
         );
     }
 
     public function updateCustomer(CustomerCreateOrUpdateEvent $event): void
     {
+        $request = $this->requestStack->getCurrentRequest();
+        $formName = CustomerProfileUpdateForm::getName();
+        $data = $request?->attributes->get($formName, $request->query->get($formName, $request->request->get($formName)));
+
         $this->saveCustomerData(
-            $this->requestStack->getCurrentRequest()->get(CustomerProfileUpdateForm::getName())[SiretManagement::SIRET] ?? '',
-            $this->requestStack->getCurrentRequest()->get(CustomerProfileUpdateForm::getName())[SiretManagement::TVA_INTRA] ?? '',
+            $data[SiretManagement::SIRET] ?? '',
+            $data[SiretManagement::TVA_INTRA] ?? '',
             $event
         );
     }
