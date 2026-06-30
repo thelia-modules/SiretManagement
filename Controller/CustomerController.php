@@ -19,6 +19,8 @@ use SiretManagement\SiretManagement;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Thelia\Controller\Admin\BaseAdminController;
+use Thelia\Core\Security\AccessManager;
+use Thelia\Core\Security\Resource\AdminResources;
 use Thelia\Core\Translation\Translator;
 use Thelia\Form\Exception\FormValidationException;
 
@@ -29,6 +31,10 @@ class CustomerController extends BaseAdminController
     #[Route('/admin/module/siret/customer/{customerId}', name: '_customer_siret_data', methods: ['POST'])]
     public function saveAction(int $customerId, Translator $translator): Response
     {
+        if (null !== $response = $this->checkAuth([AdminResources::CUSTOMER], [], AccessManager::UPDATE)) {
+            return $response;
+        }
+
         if (null === $siretInfo = SiretCustomerQuery::create()->findOneByCustomerId($customerId)) {
             $siretInfo = (new SiretCustomer())->setCustomerId($customerId);
         }
