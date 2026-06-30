@@ -39,8 +39,13 @@ class FrontHook extends BaseHook
     }
     public function onSiretCheck(HookRenderEvent $event): void
     {
+        $request = $this->getRequest();
+        $customerId = ($request !== null && $request->hasSession())
+            ? $request->getSession()->getCustomerUser()?->getId()
+            : null;
+
         $siretCustomer = SiretCustomerQuery::create()
-            ->filterByCustomerId($this->getSession()->getCustomerUser()?->getId())
+            ->filterByCustomerId($customerId)
             ->findOne()
         ;
 
