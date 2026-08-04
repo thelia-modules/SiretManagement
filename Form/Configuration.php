@@ -54,6 +54,21 @@ class Configuration extends BaseForm
                 ]
             )
             ->add(
+                SiretManagement::VAT_API_CHECK_ENABLED,
+                CheckboxType::class,
+                [
+                    'data' => (bool) SiretManagement::getConfigValue(SiretManagement::VAT_API_CHECK_ENABLED, false),
+                    'label' => Translator::getInstance()->trans('Check VAT number existence', [], SiretManagement::DOMAIN_NAME),
+                    'required' => false,
+                    'label_attr' => [
+                        'help' => Translator::getInstance()->trans(
+                            'If this box is checked, the Intra-Community VAT Number will be verified against VIES (the European Commission\'s official VAT validation service) when provided. No account or token is required. All EU member states are covered, not just France.'
+                            , [], SiretManagement::DOMAIN_NAME
+                        )
+                    ]
+                ]
+            )
+            ->add(
                 SiretManagement::SIRET_REQUIRED,
                 CheckboxType::class,
                 [
