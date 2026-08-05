@@ -63,6 +63,7 @@ class FrontHook extends BaseHook
                 'use_siret' => (bool) SiretManagement::getConfigValue(SiretManagement::USE_SIRET, true),
                 'tva_intra_required' => (bool) SiretManagement::getConfigValue(SiretManagement::TVA_INTRA_REQUIRED, false),
                 'siret_required' => (bool) SiretManagement::getConfigValue(SiretManagement::SIRET_REQUIRED, false),
+                'vat_api_check_enabled' => (bool) SiretManagement::getConfigValue(SiretManagement::VAT_API_CHECK_ENABLED, false),
 
                 'mode' => $event->getArgument('mode'), // create or update
 

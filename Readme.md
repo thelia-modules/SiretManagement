@@ -15,10 +15,20 @@ composer require thelia/siret-management-module
 
 ## Configuration
 
-You need to set public consumer key and secret in backOffice of SiretManagement module
-if you want to use the INSEE API to check SIRET numbers anbd get company information.
+You need to set the Sirene API key in the backOffice of the SiretManagement module
+if you want to use the INSEE API to check SIRET numbers and get company information.
 
-To create an account and get the keys, got to https://api.insee.fr/catalogue/site/themes/wso2/subthemes/insee/pages/item-info.jag?name=Sirene&version=V3&provider=insee
+To create an account and get the key, go to https://simondevelop.github.io/sirene/#prerequis
+
+> **Upgrading from an older version?** Prior versions used a separate public/private consumer
+> key pair (`PUBLIC_CONSUMER`/`PRIVATE_CONSUMER`). This has been replaced by a single `API_KEY`
+> field. The old keys are **not** migrated automatically: after upgrading, the SIRET check will
+> silently stop working until you re-enter a valid key in the module's configuration screen.
+
+You can also enable an Intra-Community VAT Number check against VIES (the European Commission's
+official VAT validation service) by checking "Check VAT number existence" in the module
+configuration. No account or API key is required for this check, and all EU member states are
+covered, not just France.
 
 ## Template integration
 
@@ -42,11 +52,24 @@ In account-update.html, add the following hook call :
 
 The siret.js hook call is not required, as the address fields are not present in the account-update.html file.
 
-A template is provided for default and modern template.
+A template is provided for the `default` Smarty theme.
 
 This module has no dependency on JQuery.
 
 You can override the siret.html file in your own template for a custom integration.
+
+### Flexy theme
+
+Flexy's templates never use `{hook}` calls, so the steps above don't apply. Integration is
+automatic instead:
+
+- The SIRET/VAT fields are added directly to Flexy's `flexybundle_form_customer_informations_form`
+  (registration) and `flexybundle_form_customer_update_form` (`/account`) forms — nothing to
+  change in the theme's own templates.
+- If "Check VAT number existence" is enabled in the module configuration, a live-check script
+  (debounced VIES lookup + spinner on the VAT input, with a "not found, confirm anyway" checkbox
+  shown only when relevant) is injected on every page via the `layout.body.bottom` theme hook. It
+  no-ops on any page that doesn't render a VAT input, so nothing needs to be enabled per-template.
 
 ### Suggestion for `default` template
 
@@ -76,31 +99,3 @@ You can override the siret.html file in your own template for a custom integrati
           {form_field field="newsletter"}
 ```
 
-### Suggestion for `modern` template
-
-#### In register.html
-
-```
-                </fieldset>
-
-                {hook name="siret.check" mode='update'}
-
-                {form_field field="newsletter"}
-```
-
-#### In account-update.html
-
-```
-{block name="javascript" append}
-  {encore_entry_script_tags entry="register"}
-  {hook name="siret.js"}
-{/block}
-```
-
-```
-      </div>
-
-      {hook name="siret.check" mode='create'}
-
-      <fieldset id="register-login">
-```

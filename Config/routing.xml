@@ -7,4 +7,8 @@
     <route id="route.response.search.siret" path="/register/searchSiret" methods="GET">
         <default key="_controller">SiretManagement\Controller\SiretSearchController</default>
     </route>
+
+    <route id="route.response.check.vat.number" path="/register/checkVatNumber" methods="GET">
+        <default key="_controller">SiretManagement\Controller\CheckVatNumberController</default>
+    </route>
 </routes>
