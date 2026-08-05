@@ -30,20 +30,12 @@
 
         <div class="row mb-3">
             <div class="col-md-6">
-                {{ form_label(form.public_consumer, null, {label_attr: {class: 'form-label'}}) }}
-                {{ form_widget(form.public_consumer, {attr: {class: 'form-control' ~ (form.public_consumer.vars.errors|length ? ' is-invalid' : '')}}) }}
-                {% if form.public_consumer.vars.label_attr.help is defined %}
-                    <div class="form-text">{{ form.public_consumer.vars.label_attr.help }}</div>
+                {{ form_label(form.api_key, null, {label_attr: {class: 'form-label'}}) }}
+                {{ form_widget(form.api_key, {attr: {class: 'form-control' ~ (form.api_key.vars.errors|length ? ' is-invalid' : '')}}) }}
+                {% if form.api_key.vars.label_attr.help is defined %}
+                    <div class="form-text">{{ form.api_key.vars.label_attr.help }}</div>
                 {% endif %}
-                {{ form_errors(form.public_consumer) }}
-            </div>
-            <div class="col-md-6">
-                {{ form_label(form.private_consumer, null, {label_attr: {class: 'form-label'}}) }}
-                {{ form_widget(form.private_consumer, {attr: {class: 'form-control' ~ (form.private_consumer.vars.errors|length ? ' is-invalid' : '')}}) }}
-                {% if form.private_consumer.vars.label_attr.help is defined %}
-                    <div class="form-text">{{ form.private_consumer.vars.label_attr.help }}</div>
-                {% endif %}
-                {{ form_errors(form.private_consumer) }}
+                {{ form_errors(form.api_key) }}
             </div>
         </div>
 

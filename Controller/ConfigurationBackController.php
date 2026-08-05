@@ -39,8 +39,7 @@ class ConfigurationBackController extends BaseAdminController
             $data = $this->validateForm($form)->getData();
 
             static $names = [
-                SiretManagement::PRIVATE_CONSUMER,
-                SiretManagement::PUBLIC_CONSUMER,
+                SiretManagement::API_KEY,
                 SiretManagement::TVA_INTRA_REQUIRED,
                 SiretManagement::SIRET_REQUIRED,
                 SiretManagement::USE_TVA_INTRA,
