@@ -29,9 +29,11 @@ class SiretManagement extends BaseModule
     public const SIRET_REQUIRED = 'siret_required';
     public const TVA_INTRA_REQUIRED = 'tva_intra_required';
     public const API_CHECK_DISABLED = 'api_check_disabled';
+    public const VAT_API_CHECK_ENABLED = 'vat_api_check_enabled';
 
     public const SIRET = 'siret';
     public const TVA_INTRA = 'tva_intra';
+    public const VAT_NOT_FOUND_CONFIRMED = 'vat_not_found_confirmed';
     const USE_SIRET = 'use_siret';
     const USE_TVA_INTRA= 'use_tva_intra';
 

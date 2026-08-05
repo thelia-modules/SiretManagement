@@ -36,7 +36,6 @@
                     </div>
                 </div>
 
-
                 <div class="col-md-6">
                     {render_form_field field='use_siret'}
                     {render_form_field field='siret_required'}
@@ -46,9 +45,131 @@
                     {render_form_field field='use_tva_intra'}
                     {render_form_field field='tva_intra_required'}
                 </div>
+
+                <div class="row" id="vat-existence-check-block">
+                    <div class="col-md-6">
+                        {render_form_field field='vat_api_check_enabled'}
+                        <p class="help-block">
+                            {intl l='This check is powered by VIES, the European Commission\'s official VAT validation service. It is free and requires no account or token.' d='siretmanagement.bo.default'}
+                            <br>
+                            <a href="https://ec.europa.eu/taxation_customs/vies/" target="_blank" rel="noopener noreferrer">
+                                {intl l='Learn more about VIES' d='siretmanagement.bo.default'}
+                            </a>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <button type="button" id="test-vat-api-button" class="btn btn-default">
+                            {intl l='Test API availability' d='siretmanagement.bo.default'}
+                        </button>
+                        <div id="test-vat-api-result"></div>
+
+                        <div style="margin-top: 1.5rem">
+                            <label for="test-vat-number-input">
+                                {intl l='Test with a real VAT number' d='siretmanagement.bo.default'}
+                            </label>
+                            <input type="text" id="test-vat-number-input" class="form-control" placeholder="FR51306138900">
+                            <p class="help-block">
+                                {intl l='Examples of real, valid VAT numbers you can try: %examples' d='siretmanagement.bo.default' examples='FR51306138900 (Decathlon), BE0417497106 (AB InBev), FR14652014051 (Carrefour)'}
+                            </p>
+                            <button type="button" id="test-vat-number-button" class="btn btn-default" style="margin-top: 0.5rem">
+                                {intl l='Test' d='siretmanagement.bo.default'}
+                            </button>
+                            <div id="test-vat-number-result"></div>
+                        </div>
+                    </div>
+                </div>
             </form>
         {/form}
       </div>
     </div>
   </div>
 </div>
+
+<script>
+    (function () {
+        var useTvaIntraCheckbox = document.getElementById('siretmanagement_config_form-id-use_tva_intra');
+        var vatExistenceCheckBlock = document.getElementById('vat-existence-check-block');
+
+        function toggleVatExistenceCheckBlock() {
+            vatExistenceCheckBlock.style.display = useTvaIntraCheckbox.checked ? '' : 'none';
+        }
+
+        if (useTvaIntraCheckbox && vatExistenceCheckBlock) {
+            toggleVatExistenceCheckBlock();
+            useTvaIntraCheckbox.addEventListener('change', toggleVatExistenceCheckBlock);
+        }
+    })();
+
+    (function () {
+        function linkUseAndRequired(useId, requiredId) {
+            var useCheckbox = document.getElementById(useId);
+            var requiredCheckbox = document.getElementById(requiredId);
+
+            if (!useCheckbox || !requiredCheckbox) {
+                return;
+            }
+
+            function syncRequiredState() {
+                requiredCheckbox.disabled = !useCheckbox.checked;
+
+                if (!useCheckbox.checked) {
+                    requiredCheckbox.checked = false;
+                }
+            }
+
+            syncRequiredState();
+            useCheckbox.addEventListener('change', syncRequiredState);
+        }
+
+        linkUseAndRequired('siretmanagement_config_form-id-use_siret', 'siretmanagement_config_form-id-siret_required');
+        linkUseAndRequired('siretmanagement_config_form-id-use_tva_intra', 'siretmanagement_config_form-id-tva_intra_required');
+    })();
+
+    document.getElementById('test-vat-api-button').addEventListener('click', function () {
+        const resultBox = document.getElementById('test-vat-api-result');
+        resultBox.textContent = '...';
+
+        fetch('{url path="/admin/module/siret/configuration/test-vat-api"}', {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+            .then(function (response) {
+                return response.json();
+            })
+            .then(function (result) {
+                resultBox.textContent = result.message;
+                resultBox.className = result.available ? 'text-success' : 'text-danger';
+            })
+            .catch(function () {
+                resultBox.textContent = '{intl l="Test failed" d="siretmanagement.bo.default"}';
+                resultBox.className = 'text-danger';
+            });
+    });
+
+    document.getElementById('test-vat-number-button').addEventListener('click', function () {
+        const resultBox = document.getElementById('test-vat-number-result');
+        const vatNumber = document.getElementById('test-vat-number-input').value;
+        resultBox.textContent = '...';
+
+        fetch('{url path="/admin/module/siret/configuration/test-vat-number"}?vat_number=' + encodeURIComponent(vatNumber), {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+            .then(function (response) {
+                return response.json();
+            })
+            .then(function (result) {
+                resultBox.textContent = result.message;
+
+                if (!result.success) {
+                    resultBox.className = 'text-danger';
+                } else if (!result.found) {
+                    resultBox.className = 'text-warning';
+                } else {
+                    resultBox.className = 'text-success';
+                }
+            })
+            .catch(function () {
+                resultBox.textContent = '{intl l="Test failed" d="siretmanagement.bo.default"}';
+                resultBox.className = 'text-danger';
+            });
+    });
+</script>

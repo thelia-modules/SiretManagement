@@ -18,6 +18,7 @@ namespace SiretManagement\Form;
 use SiretManagement\Event\CheckDataEvent;
 use SiretManagement\SiretManagement;
 use Symfony\Component\Form\CallbackTransformer;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Validator\Constraints\Callback;
@@ -38,7 +39,8 @@ trait CustomerFormManagementTrait
             }
         );
 
-        $siretRequired = (bool) SiretManagement::getConfigValue(SiretManagement::SIRET_REQUIRED, false);
+        $useSiret = (bool) SiretManagement::getConfigValue(SiretManagement::USE_SIRET, true);
+        $siretRequired = $useSiret && (bool) SiretManagement::getConfigValue(SiretManagement::SIRET_REQUIRED, false);
         $siretConstraints = [
             new Callback([$this, 'checkSiretInput']),
         ];
@@ -47,7 +49,8 @@ trait CustomerFormManagementTrait
             $siretConstraints[] = new NotBlank();
         }
 
-        $vatRequired = (bool) SiretManagement::getConfigValue(SiretManagement::TVA_INTRA_REQUIRED, false);
+        $useTvaIntra = (bool) SiretManagement::getConfigValue(SiretManagement::USE_TVA_INTRA, true);
+        $vatRequired = $useTvaIntra && (bool) SiretManagement::getConfigValue(SiretManagement::TVA_INTRA_REQUIRED, false);
         $vatConstraints = [
             new Callback([$this, 'checkVatInput']),
         ];
@@ -85,6 +88,18 @@ trait CustomerFormManagementTrait
                     ],
                 ]
             )
+            ->add(
+                SiretManagement::VAT_NOT_FOUND_CONFIRMED,
+                CheckboxType::class,
+                [
+                    'label' => Translator::getInstance()?->trans(
+                        'I confirm this VAT number was not found and I still want to proceed',
+                        [],
+                        SiretManagement::DOMAIN_NAME
+                    ),
+                    'required' => false,
+                ]
+            )
         ;
 
         $formBuilder
@@ -108,21 +123,38 @@ trait CustomerFormManagementTrait
 
     public function checkVatInput($value, ExecutionContextInterface $context): void
     {
+        $normalizedValue = preg_replace('/\s/', '', (string) $value);
+
+        if ('' !== $normalizedValue && $normalizedValue === $this->getStoredTvaIntra()) {
+            // Unchanged since the last accepted save: don't force the customer to re-tick
+            // the VIES "not found" confirmation box just to edit an unrelated form field.
+            return;
+        }
+
+        $rootData = $context->getRoot()->getData();
+        $confirmed = (bool) ($rootData[SiretManagement::VAT_NOT_FOUND_CONFIRMED] ?? false);
+
         $this->checkItem(
             SiretManagement::CHECK_VAT_EVENT,
             Translator::getInstance()?->trans('Intra-Community VAT Number', [], SiretManagement::DOMAIN_NAME),
             $value,
-            $context
+            $context,
+            $confirmed
         );
     }
 
-    protected function checkItem($eventName, $itemName, $value, ExecutionContextInterface $context): void
+    protected function getStoredTvaIntra(): ?string
+    {
+        return null;
+    }
+
+    protected function checkItem($eventName, $itemName, $value, ExecutionContextInterface $context, bool $notFoundConfirmed = false): void
     {
         if (empty(trim($value))) {
             return;
         }
 
-        $event = new CheckDataEvent($value);
+        $event = (new CheckDataEvent($value))->setNotFoundConfirmed($notFoundConfirmed);
 
         $this->getDispatcher()->dispatch($event, $eventName);
 
