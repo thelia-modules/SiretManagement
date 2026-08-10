@@ -1,0 +1,209 @@
+<script>
+(function () {
+    const CHECK_URL = '{{ path('route.response.check.vat.number') }}';
+    const NOT_FOUND_MESSAGE = {{ vatNotFoundMessage|json_encode|raw }};
+    const MESSAGE_ID = 'siretmanagement-vat-not-found-message';
+    const KEYFRAMES_ID = 'siret-vat-spin-keyframes';
+
+    // Flexy's CustomerInformationForm is a Symfony UX LiveComponent: server-side validation of
+    // any field (including our own checkVatInput constraint, once it fails) re-renders the
+    // form's DOM subtree. That both wipes out any element we injected ourselves (message box,
+    // spinner) and can recreate the input node itself. Caching DOM references once at load time
+    // — as the Smarty version of this script does — doesn't survive that. Everything below is
+    // therefore delegated through `document` and re-resolved fresh on every event, and per-input
+    // state is tracked via WeakMap/WeakSet so a recreated node simply starts fresh instead of
+    // silently going stale.
+    const lastChecked = new WeakMap();
+    const inFlight = new WeakSet();
+    let debounceTimer = null;
+
+    function ensureKeyframes() {
+        if (!document.getElementById(KEYFRAMES_ID)) {
+            const style = document.createElement('style');
+            style.id = KEYFRAMES_ID;
+            style.textContent = '@keyframes siret-vat-spin { to { transform: rotate(360deg); } }';
+            document.head.appendChild(style);
+        }
+    }
+
+    function getMessageBox(vatInput) {
+        let box = document.getElementById(MESSAGE_ID);
+        if (box && box.isConnected) {
+            return box;
+        }
+        box = document.createElement('p');
+        box.id = MESSAGE_ID;
+        box.style.cssText = 'display:none;color:#b0413e;font-size:0.875rem;margin-top:0.25rem;';
+        vatInput.insertAdjacentElement('afterend', box);
+        return box;
+    }
+
+    function getLoader(vatInput) {
+        const parent = vatInput.parentElement;
+        if (!parent) {
+            return null;
+        }
+        let loader = parent.querySelector(':scope > [data-vat-loader]');
+        if (loader && loader.isConnected) {
+            return loader;
+        }
+        ensureKeyframes();
+        if (getComputedStyle(parent).position === 'static') {
+            parent.style.position = 'relative';
+        }
+        loader = document.createElement('span');
+        loader.setAttribute('data-vat-loader', '');
+        loader.setAttribute('aria-hidden', 'true');
+        loader.style.cssText = 'position:absolute;display:none;pointer-events:none;transform:translateY(-50%);';
+        loader.innerHTML = '<span style="display:block;width:14px;height:14px;border:2px solid rgba(0,0,0,.15);border-top-color:#666;border-radius:50%;animation:siret-vat-spin .6s linear infinite;"></span>';
+        parent.appendChild(loader);
+        return loader;
+    }
+
+    function showLoader(vatInput, show) {
+        const loader = getLoader(vatInput);
+        if (!loader) {
+            return;
+        }
+        if (show) {
+            const parent = vatInput.parentElement;
+            loader.style.top = (vatInput.offsetTop + vatInput.offsetHeight / 2) + 'px';
+            loader.style.right = (parent.offsetWidth - (vatInput.offsetLeft + vatInput.offsetWidth) + 10) + 'px';
+        }
+        loader.style.display = show ? 'block' : 'none';
+    }
+
+    function getCheckboxWrapper(confirmCheckbox) {
+        // @components/Atoms/Form/Checkbox.html.twig wraps the input in <label class="Checkbox">.
+        return confirmCheckbox ? (confirmCheckbox.closest('label.Checkbox') || confirmCheckbox.parentElement) : null;
+    }
+
+    function setCheckboxVisible(show) {
+        const wrapper = getCheckboxWrapper(document.querySelector('[data-vat-not-found-confirm]'));
+        if (wrapper) {
+            wrapper.style.display = show ? '' : 'none';
+        }
+    }
+
+    // Unlike the Smarty themes (hook/siret.html), Flexy has no template-level control over this
+    // field: form_rest() always renders it, so it shows up regardless of whether the current VAT
+    // number was actually found. Hide it by default — unless the field already carries a
+    // server-side validation error (Checkbox.html.twig gives the wrapper an "error" class in that
+    // case) — and only reveal it once a live check actually reports "not found".
+    //
+    // A LiveComponent re-render (any field failing server-side validation, not just this one)
+    // replaces the DOM subtree, including this checkbox: running this once at script load, as
+    // the Smarty version does, only hides the very first instance. A MutationObserver re-applies
+    // the default on every subsequent render instead, tracking already-handled nodes in a
+    // WeakSet so a checkbox a live check already revealed isn't hidden again on unrelated DOM churn.
+    const defaultStateApplied = new WeakSet();
+
+    function applyCheckboxDefaultState() {
+        const confirmCheckbox = document.querySelector('[data-vat-not-found-confirm]');
+        if (!confirmCheckbox || defaultStateApplied.has(confirmCheckbox)) {
+            return;
+        }
+        defaultStateApplied.add(confirmCheckbox);
+        const wrapper = getCheckboxWrapper(confirmCheckbox);
+        if (wrapper && !wrapper.classList.contains('error')) {
+            wrapper.style.display = 'none';
+        }
+    }
+
+    applyCheckboxDefaultState();
+    new MutationObserver(applyCheckboxDefaultState).observe(document.body, {childList: true, subtree: true});
+
+    function updateSubmitState(vatInput) {
+        const form = vatInput.closest('form');
+        const submitBtn = form ? form.querySelector('button[type="submit"]') : null;
+        if (!submitBtn) {
+            return;
+        }
+        const box = document.getElementById(MESSAGE_ID);
+        const confirmCheckbox = document.querySelector('[data-vat-not-found-confirm]');
+        const notFound = !!(box && box.isConnected && box.style.display !== 'none');
+        submitBtn.disabled = notFound && !(confirmCheckbox && confirmCheckbox.checked);
+    }
+
+    function runCheck(vatInput) {
+        const value = vatInput.value.trim();
+        if (value === '' || value === lastChecked.get(vatInput) || inFlight.has(vatInput)) {
+            return;
+        }
+        lastChecked.set(vatInput, value);
+        inFlight.add(vatInput);
+        showLoader(vatInput, true);
+
+        fetch(CHECK_URL + '?vat_number=' + encodeURIComponent(value))
+            .then(function (response) { return response.json(); })
+            .then(function (result) {
+                const notFound = !!(result.success && !result.found);
+                const box = getMessageBox(vatInput);
+                box.style.display = notFound ? 'block' : 'none';
+                box.textContent = notFound ? NOT_FOUND_MESSAGE : '';
+                setCheckboxVisible(notFound);
+                if (!notFound) {
+                    const confirmCheckbox = document.querySelector('[data-vat-not-found-confirm]');
+                    if (confirmCheckbox) {
+                        confirmCheckbox.checked = false;
+                    }
+                }
+                updateSubmitState(vatInput);
+            })
+            .catch(function () {
+                // Network failure on the front check: the server remains the real
+                // gatekeeper at submit time, so we don't block the UX here.
+            })
+            .finally(function () {
+                inFlight.delete(vatInput);
+                showLoader(vatInput, false);
+            });
+    }
+
+    document.addEventListener('input', function (event) {
+        const vatInput = event.target.closest && event.target.closest('[data-vat-input]');
+        if (!vatInput) {
+            return;
+        }
+        const confirmCheckbox = document.querySelector('[data-vat-not-found-confirm]');
+        if (confirmCheckbox && confirmCheckbox.checked) {
+            confirmCheckbox.checked = false;
+        }
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(function () { runCheck(vatInput); }, 1000);
+    });
+
+    document.addEventListener('focusout', function (event) {
+        const vatInput = event.target.closest && event.target.closest('[data-vat-input]');
+        if (!vatInput) {
+            return;
+        }
+        clearTimeout(debounceTimer);
+        runCheck(vatInput);
+    });
+
+    document.addEventListener('change', function (event) {
+        if (event.target.matches && event.target.matches('[data-vat-not-found-confirm]')) {
+            const vatInput = document.querySelector('[data-vat-input]');
+            if (vatInput) {
+                updateSubmitState(vatInput);
+            }
+        }
+    });
+
+    document.addEventListener('submit', function (event) {
+        const vatInput = event.target.querySelector && event.target.querySelector('[data-vat-input]');
+        if (!vatInput) {
+            return;
+        }
+        const box = document.getElementById(MESSAGE_ID);
+        const confirmCheckbox = document.querySelector('[data-vat-not-found-confirm]');
+        const notFound = !!(box && box.isConnected && box.style.display !== 'none');
+        if (notFound && !(confirmCheckbox && confirmCheckbox.checked)) {
+            event.preventDefault();
+            box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            (confirmCheckbox || vatInput).focus();
+        }
+    }, true);
+})();
+</script>

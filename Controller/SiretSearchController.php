@@ -16,9 +16,11 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\AsController;
+use Symfony\Component\Routing\Attribute\Route;
 use Thelia\Core\HttpFoundation\Request;
 
 #[AsController]
+#[Route('/register/searchSiret', name: 'route.response.search.siret', methods: ['GET'])]
 class SiretSearchController extends AbstractController
 {
     public function __construct(protected SiretAPIManagement $siretAPIManagement)

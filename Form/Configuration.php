@@ -27,7 +27,7 @@ class Configuration extends BaseForm
                 SiretManagement::API_CHECK_DISABLED,
                 CheckboxType::class,
                 [
-                    'data' => (bool) SiretManagement::getConfigValue(SiretManagement::API_CHECK_DISABLED, false),
+                    'data' => (bool) SiretManagement::getConfigValue(SiretManagement::API_CHECK_DISABLED, null),
                     'label' => Translator::getInstance()->trans('Disable siret check', [], SiretManagement::DOMAIN_NAME),
                     'required' => false,
                     'label_attr' => [
@@ -39,30 +39,30 @@ class Configuration extends BaseForm
                 ]
             )
             ->add(
-                SiretManagement::PUBLIC_CONSUMER,
+                SiretManagement::API_KEY,
                 TextType::class,
                 [
-                    'data' => SiretManagement::getConfigValue(SiretManagement::PUBLIC_CONSUMER, null),
+                    'data' => SiretManagement::getConfigValue(SiretManagement::API_KEY, null),
                     'required' => false,
-                    'label' => Translator::getInstance()->trans('Clef du consommateur', [], SiretManagement::DOMAIN_NAME),
+                    'label' => Translator::getInstance()->trans('Clé API', [], SiretManagement::DOMAIN_NAME),
                     'label_attr' => [
                         'help' => Translator::getInstance()->trans(
-                            'Enter the public consumer key for INSEE Sirene API (more details here: https://api.gouv.fr/les-api/sirene_v3)'
+                            'Enter the API key for INSEE Sirene API (more details here: https://simondevelop.github.io/sirene/#prerequis)'
                             , [], SiretManagement::DOMAIN_NAME
                         )
                     ]
                 ]
             )
             ->add(
-                SiretManagement::PRIVATE_CONSUMER,
-                TextType::class,
+                SiretManagement::VAT_API_CHECK_ENABLED,
+                CheckboxType::class,
                 [
-                    'data' => SiretManagement::getConfigValue(SiretManagement::PRIVATE_CONSUMER, null),
+                    'data' => (bool) SiretManagement::getConfigValue(SiretManagement::VAT_API_CHECK_ENABLED, null),
+                    'label' => Translator::getInstance()->trans('Check VAT number existence', [], SiretManagement::DOMAIN_NAME),
                     'required' => false,
-                    'label' => Translator::getInstance()->trans('Secret du consommateur', [], SiretManagement::DOMAIN_NAME),
                     'label_attr' => [
                         'help' => Translator::getInstance()->trans(
-                            'Enter the private consumer key for INSEE Sirene API (more details here: https://api.gouv.fr/les-api/sirene_v3)'
+                            'If this box is checked, the Intra-Community VAT Number will be verified against VIES (the European Commission\'s official VAT validation service) when provided. No account or token is required. All EU member states are covered, not just France.'
                             , [], SiretManagement::DOMAIN_NAME
                         )
                     ]
@@ -72,7 +72,7 @@ class Configuration extends BaseForm
                 SiretManagement::SIRET_REQUIRED,
                 CheckboxType::class,
                 [
-                    'data' => (bool) SiretManagement::getConfigValue(SiretManagement::SIRET_REQUIRED, false),
+                    'data' => (bool) SiretManagement::getConfigValue(SiretManagement::SIRET_REQUIRED, null),
                     'label' => Translator::getInstance()->trans('SIRET is required', [], SiretManagement::DOMAIN_NAME),
                     'required' => false,
                     'label_attr' => [
@@ -87,7 +87,7 @@ class Configuration extends BaseForm
                 SiretManagement::TVA_INTRA_REQUIRED,
                 CheckboxType::class,
                 [
-                    'data' => (bool) SiretManagement::getConfigValue(SiretManagement::TVA_INTRA_REQUIRED, false),
+                    'data' => (bool) SiretManagement::getConfigValue(SiretManagement::TVA_INTRA_REQUIRED, null),
                     'label' => Translator::getInstance()->trans('Intra-Community VAT Number is required', [], SiretManagement::DOMAIN_NAME),
                     'required' => false,
                     'label_attr' => [

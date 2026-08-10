@@ -1,0 +1,5 @@
+This directory is intentionally empty of template files: Flexy's SIRET/VAT fields are rendered
+by the customer form itself (form_row/form_rest), not by a module-provided template. It only
+needs to exist so TheliaTemplateHelper::getList() discovers "flexy" as a front template for this
+module, which is what makes the container register the siretmanagement.fo.flexy translation
+domain from ../../../I18n/frontOffice/flexy/ (see Hook/Theme/SiretManagementThemeHook.php).

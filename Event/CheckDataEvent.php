@@ -30,6 +30,7 @@ class CheckDataEvent extends ActionEvent
     protected $dataToCheck;
     protected $data;
     protected $error;
+    protected bool $notFoundConfirmed = false;
 
     public function __construct($siret)
     {
@@ -97,6 +98,18 @@ class CheckDataEvent extends ActionEvent
     public function setError($error)
     {
         $this->error = $error;
+
+        return $this;
+    }
+
+    public function isNotFoundConfirmed(): bool
+    {
+        return $this->notFoundConfirmed;
+    }
+
+    public function setNotFoundConfirmed(bool $notFoundConfirmed): self
+    {
+        $this->notFoundConfirmed = $notFoundConfirmed;
 
         return $this;
     }
