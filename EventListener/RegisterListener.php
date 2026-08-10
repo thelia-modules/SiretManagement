@@ -231,7 +231,7 @@ class RegisterListener implements EventSubscriberInterface
             $vatNumber = $this->intraCommunityVatChecker->check($event->getDataToCheck());
             $event->setData($vatNumber);
 
-            if (!(bool) SiretManagement::getConfigValue(SiretManagement::VAT_API_CHECK_ENABLED, false)) {
+            if (!(bool) SiretManagement::getConfigValue(SiretManagement::VAT_API_CHECK_ENABLED, null)) {
                 return;
             }
 
@@ -241,7 +241,7 @@ class RegisterListener implements EventSubscriberInterface
             // acknowledge. Only the front self-service forms enforce the checkbox/required rule.
             $isAdminRequest = $this->requestStack->getCurrentRequest()?->fromAdmin() === true;
 
-            $vatRequired = !$isAdminRequest && (bool) SiretManagement::getConfigValue(SiretManagement::TVA_INTRA_REQUIRED, false);
+            $vatRequired = !$isAdminRequest && (bool) SiretManagement::getConfigValue(SiretManagement::TVA_INTRA_REQUIRED, null);
 
             try {
                 $notice = $this->vatExistenceChecker->check($vatNumber);
@@ -262,7 +262,11 @@ class RegisterListener implements EventSubscriberInterface
 
             if (null === $notice || $isAdminRequest) {
                 if ($isAdminRequest && null !== $notice) {
-                    $this->logger->warning('Admin saved a VAT number not found by VIES', ['vatNumber' => $vatNumber]);
+                    // Not logging $vatNumber itself: IntraCommunityVatChecker::check() doesn't
+                    // guarantee a normalized [country code][digits] shape to extract a safe
+                    // prefix from, and a VAT number identifies a business that shouldn't
+                    // accumulate in clear text in centralized logging either way.
+                    $this->logger->warning('Admin saved a VAT number not found by VIES');
                 }
 
                 return;

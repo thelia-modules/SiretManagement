@@ -42,7 +42,7 @@ trait CustomerFormManagementTrait
         );
 
         $useSiret = (bool) SiretManagement::getConfigValue(SiretManagement::USE_SIRET, true);
-        $siretRequired = $useSiret && (bool) SiretManagement::getConfigValue(SiretManagement::SIRET_REQUIRED, false);
+        $siretRequired = $useSiret && (bool) SiretManagement::getConfigValue(SiretManagement::SIRET_REQUIRED, null);
         $siretConstraints = [
             new Callback([$this, 'checkSiretInput']),
         ];
@@ -52,7 +52,7 @@ trait CustomerFormManagementTrait
         }
 
         $useTvaIntra = (bool) SiretManagement::getConfigValue(SiretManagement::USE_TVA_INTRA, true);
-        $vatRequired = $useTvaIntra && (bool) SiretManagement::getConfigValue(SiretManagement::TVA_INTRA_REQUIRED, false);
+        $vatRequired = $useTvaIntra && (bool) SiretManagement::getConfigValue(SiretManagement::TVA_INTRA_REQUIRED, null);
         $vatConstraints = [
             new Callback([$this, 'checkVatInput']),
         ];
@@ -105,7 +105,7 @@ trait CustomerFormManagementTrait
         // possible). Adding it unconditionally would show a meaningless checkbox on every theme
         // that renders the form via form_rest() (Flexy), since there's no per-field template
         // control to hide it there the way the Smarty themes do.
-        $vatApiCheckEnabled = (bool) SiretManagement::getConfigValue(SiretManagement::VAT_API_CHECK_ENABLED, false);
+        $vatApiCheckEnabled = (bool) SiretManagement::getConfigValue(SiretManagement::VAT_API_CHECK_ENABLED, null);
 
         if ($vatApiCheckEnabled && !$vatRequired) {
             $formBuilder->add(

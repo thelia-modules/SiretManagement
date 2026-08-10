@@ -18,6 +18,7 @@ use Symfony\Component\DependencyInjection\Loader\Configurator\ServicesConfigurat
 use Symfony\Component\Finder\Finder;
 use Thelia\Core\Template\TemplateDefinition;
 use Thelia\Core\Install\Database;
+use Thelia\Model\ModuleConfigQuery;
 use Thelia\Module\BaseModule;
 
 class SiretManagement extends BaseModule
@@ -26,6 +27,12 @@ class SiretManagement extends BaseModule
     public const DOMAIN_NAME = 'siretmanagement';
 
     public const API_KEY = 'api_key';
+
+    /** @deprecated replaced by API_KEY in 2.0.0, kept only so update() can purge orphaned rows */
+    private const LEGACY_PUBLIC_CONSUMER = 'public_consumer';
+    /** @deprecated replaced by API_KEY in 2.0.0, kept only so update() can purge orphaned rows */
+    private const LEGACY_PRIVATE_CONSUMER = 'private_consumer';
+
     public const SIRET_REQUIRED = 'siret_required';
     public const TVA_INTRA_REQUIRED = 'tva_intra_required';
     public const API_CHECK_DISABLED = 'api_check_disabled';
@@ -110,6 +117,16 @@ class SiretManagement extends BaseModule
             if (version_compare($currentVersion, $file->getBasename('.sql'), '<')) {
                 $database->insertSql(null, [$file->getPathname()]);
             }
+        }
+
+        // 2.0.0 replaced the public/private consumer key pair (INSEE API v3) with a single
+        // API_KEY (V3.11). The old pair is not a valid substitute -- there is nothing to
+        // carry over -- so this only purges the orphaned rows; the Readme tells admins they
+        // must re-enter a new key after upgrading.
+        if (version_compare($currentVersion, '2.0.2', '<')) {
+            $moduleId = self::getModuleId();
+            ModuleConfigQuery::create()->deleteConfigValue($moduleId, self::LEGACY_PUBLIC_CONSUMER);
+            ModuleConfigQuery::create()->deleteConfigValue($moduleId, self::LEGACY_PRIVATE_CONSUMER);
         }
     }
 }

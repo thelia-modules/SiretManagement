@@ -20,6 +20,7 @@ use SiretManagement\SiretManagement;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\AsController;
+use Symfony\Component\Routing\Attribute\Route;
 use Thelia\Controller\Front\BaseFrontController;
 use Thelia\Core\HttpFoundation\Request;
 
@@ -29,6 +30,7 @@ use Thelia\Core\HttpFoundation\Request;
  * VIES did not find their VAT number, without waiting for a full form submit.
  */
 #[AsController]
+#[Route('/register/checkVatNumber', name: 'route.response.check.vat.number', methods: ['GET'])]
 class CheckVatNumberController extends BaseFrontController
 {
     use ThrottleTrait;
@@ -39,12 +41,17 @@ class CheckVatNumberController extends BaseFrontController
     ) {
     }
 
+    private function getThrottleCache(): CacheItemPoolInterface
+    {
+        return $this->throttleCache;
+    }
+
     /**
      * @throws \JsonException
      */
     public function __invoke(Request $request): Response
     {
-        if (!(bool) SiretManagement::getConfigValue(SiretManagement::VAT_API_CHECK_ENABLED, false)) {
+        if (!(bool) SiretManagement::getConfigValue(SiretManagement::VAT_API_CHECK_ENABLED, null)) {
             return $this->jsonResponse(json_encode(
                 ['success' => true, 'found' => true, 'message' => ''],
                 JSON_THROW_ON_ERROR

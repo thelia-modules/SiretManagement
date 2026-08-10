@@ -45,7 +45,7 @@ final readonly class SiretManagementThemeHook implements ThemeHookInterface
     public function render(string $hookName, array $parameters): string
     {
         if (!(bool) SiretManagement::getConfigValue(SiretManagement::USE_TVA_INTRA, true)
-            || !(bool) SiretManagement::getConfigValue(SiretManagement::VAT_API_CHECK_ENABLED, false)
+            || !(bool) SiretManagement::getConfigValue(SiretManagement::VAT_API_CHECK_ENABLED, null)
         ) {
             return '';
         }

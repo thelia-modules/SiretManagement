@@ -54,6 +54,11 @@ The siret.js hook call is not required, as the address fields are not present in
 
 A template is provided for the `default` Smarty theme.
 
+> **Dropped in 2.0.0:** the `modern` Smarty theme template (and its translations) has been
+> removed. Sites still running the `modern` theme will lose the SIRET/VAT fields on the
+> registration form after upgrading, with no automatic fallback. If you need them, copy the
+> `default` theme's `siret.html` into your `modern` theme before upgrading.
+
 This module has no dependency on JQuery.
 
 You can override the siret.html file in your own template for a custom integration.
@@ -70,6 +75,37 @@ automatic instead:
   (debounced VIES lookup + spinner on the VAT input, with a "not found, confirm anyway" checkbox
   shown only when relevant) is injected on every page via the `layout.body.bottom` theme hook. It
   no-ops on any page that doesn't render a VAT input, so nothing needs to be enabled per-template.
+
+## Security note: the front VAT live-check endpoint
+
+`CheckVatNumberController` (`/register/checkVatNumber`) is intentionally anonymous and
+unauthenticated: it backs the live VAT-check UX on the registration form, which runs before
+the customer has an account. It only relays a boolean `success`/`found` (never VIES's raw
+message or the resolved company name), and is throttled to 1 request / 3 seconds per
+session+IP via `ThrottleTrait`. This makes it a rate-limited, minimal-disclosure proxy to
+VIES rather than a raw passthrough -- accepted as-is, no CSRF token is expected on it since
+it performs no state-changing action.
+
+## Running the tests
+
+This module has no PHPUnit config or autoload of its own: its classes rely on Thelia's own
+module autoloading, which only exists once the module sits under a real Thelia install's
+`vendor/thelia/modules/` (or `local/modules/`). Run the tests from that host project instead
+of trying to `composer install` this module standalone, using its own autoloader:
+
+```
+ddev exec ./vendor/bin/phpunit --bootstrap vendor/autoload.php \
+    vendor/thelia/modules/SiretManagement/Tests/Unit
+```
+
+`Tests/Functional` is tagged `@group functional`: it makes real HTTP calls to the live VIES
+API and is excluded from the command above on purpose. Run it explicitly, deliberately, when
+you actually want to hit VIES:
+
+```
+ddev exec ./vendor/bin/phpunit --bootstrap vendor/autoload.php \
+    vendor/thelia/modules/SiretManagement/Tests/Functional
+```
 
 ### Suggestion for `default` template
 

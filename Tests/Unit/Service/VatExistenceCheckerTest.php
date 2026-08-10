@@ -8,6 +8,8 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use SiretManagement\Service\IntraCommunityVatChecker;
 use SiretManagement\Service\VatExistenceChecker;
+use Symfony\Component\HttpClient\MockHttpClient;
+use Symfony\Component\HttpClient\Response\MockResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Thelia\Core\Translation\Translator;
 
@@ -26,29 +28,27 @@ class VatExistenceCheckerTest extends TestCase
         }
     }
 
+    /**
+     * @param list<array{httpCode: int, body: ?string, error: bool}> $httpGetResponses
+     * @param list<array{httpCode: int, body: ?string, error: bool}> $httpPostResponses
+     */
     private function makeChecker(array $httpGetResponses, array $httpPostResponses, LoggerInterface $logger): VatExistenceChecker
     {
-        return new class($logger, $httpGetResponses, $httpPostResponses) extends VatExistenceChecker {
-            private array $getResponses;
-            private array $postResponses;
+        $responses = array_map($this->toMockResponse(...), [...$httpGetResponses, ...$httpPostResponses]);
 
-            public function __construct(LoggerInterface $logger, array $getResponses, array $postResponses)
-            {
-                parent::__construct($logger, new IntraCommunityVatChecker());
-                $this->getResponses = $getResponses;
-                $this->postResponses = $postResponses;
-            }
+        return new VatExistenceChecker($logger, new IntraCommunityVatChecker(), new MockHttpClient($responses));
+    }
 
-            protected function httpGet(string $url): array
-            {
-                return array_shift($this->getResponses) ?? ['httpCode' => 0, 'body' => null, 'error' => true];
-            }
+    /**
+     * @param array{httpCode: int, body: ?string, error: bool} $canned
+     */
+    private function toMockResponse(array $canned): MockResponse
+    {
+        if ($canned['error']) {
+            return new MockResponse('', ['error' => 'Network error']);
+        }
 
-            protected function httpPost(string $url, array $jsonBody): array
-            {
-                return array_shift($this->postResponses) ?? ['httpCode' => 0, 'body' => null, 'error' => true];
-            }
-        };
+        return new MockResponse($canned['body'] ?? '', ['http_code' => $canned['httpCode']]);
     }
 
     public function testCheckDoesNothingForValidAndFoundVatNumber(): void

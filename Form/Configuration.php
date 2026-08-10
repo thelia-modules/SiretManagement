@@ -27,7 +27,7 @@ class Configuration extends BaseForm
                 SiretManagement::API_CHECK_DISABLED,
                 CheckboxType::class,
                 [
-                    'data' => (bool) SiretManagement::getConfigValue(SiretManagement::API_CHECK_DISABLED, false),
+                    'data' => (bool) SiretManagement::getConfigValue(SiretManagement::API_CHECK_DISABLED, null),
                     'label' => Translator::getInstance()->trans('Disable siret check', [], SiretManagement::DOMAIN_NAME),
                     'required' => false,
                     'label_attr' => [
@@ -57,7 +57,7 @@ class Configuration extends BaseForm
                 SiretManagement::VAT_API_CHECK_ENABLED,
                 CheckboxType::class,
                 [
-                    'data' => (bool) SiretManagement::getConfigValue(SiretManagement::VAT_API_CHECK_ENABLED, false),
+                    'data' => (bool) SiretManagement::getConfigValue(SiretManagement::VAT_API_CHECK_ENABLED, null),
                     'label' => Translator::getInstance()->trans('Check VAT number existence', [], SiretManagement::DOMAIN_NAME),
                     'required' => false,
                     'label_attr' => [
@@ -72,7 +72,7 @@ class Configuration extends BaseForm
                 SiretManagement::SIRET_REQUIRED,
                 CheckboxType::class,
                 [
-                    'data' => (bool) SiretManagement::getConfigValue(SiretManagement::SIRET_REQUIRED, false),
+                    'data' => (bool) SiretManagement::getConfigValue(SiretManagement::SIRET_REQUIRED, null),
                     'label' => Translator::getInstance()->trans('SIRET is required', [], SiretManagement::DOMAIN_NAME),
                     'required' => false,
                     'label_attr' => [
@@ -87,7 +87,7 @@ class Configuration extends BaseForm
                 SiretManagement::TVA_INTRA_REQUIRED,
                 CheckboxType::class,
                 [
-                    'data' => (bool) SiretManagement::getConfigValue(SiretManagement::TVA_INTRA_REQUIRED, false),
+                    'data' => (bool) SiretManagement::getConfigValue(SiretManagement::TVA_INTRA_REQUIRED, null),
                     'label' => Translator::getInstance()->trans('Intra-Community VAT Number is required', [], SiretManagement::DOMAIN_NAME),
                     'required' => false,
                     'label_attr' => [

@@ -16,9 +16,11 @@ namespace SiretManagement\Service;
 
 use Psr\Log\LoggerInterface;
 use SiretManagement\SiretManagement;
+use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Thelia\Core\Translation\Translator;
 
-class VatExistenceChecker
+final readonly class VatExistenceChecker
 {
     private const CHECK_URL = 'https://ec.europa.eu/taxation_customs/vies/rest-api/check-vat-number';
     private const STATUS_URL = 'https://ec.europa.eu/taxation_customs/vies/rest-api/check-status';
@@ -39,8 +41,9 @@ class VatExistenceChecker
     private const NON_TRANSIENT_ERROR_CODES = ['INVALID_INPUT', 'INVALID_QUERY_CONFIG_TYPE'];
 
     public function __construct(
-        private readonly LoggerInterface $logger,
-        private readonly IntraCommunityVatChecker $formatChecker,
+        private LoggerInterface $logger,
+        private IntraCommunityVatChecker $formatChecker,
+        private HttpClientInterface $httpClient,
     ) {
     }
 
@@ -72,18 +75,18 @@ class VatExistenceChecker
                 throw new \RuntimeException($this->unavailableMessage());
             }
 
-            $this->logger->warning(sprintf(
-                'SiretManagement: VIES rejected VAT number %s%s (%s)',
-                $countryCode,
-                $number,
-                $result['errorCode']
-            ));
+            // Country code only, not the full number: a VAT number identifies a business and
+            // shouldn't accumulate in clear text in centralized logging (Sentry, CloudWatch...).
+            $this->logger->warning('SiretManagement: VIES rejected VAT number', [
+                'countryCode' => $countryCode,
+                'errorCode' => $result['errorCode'],
+            ]);
 
             return null;
         }
 
         if (!$result['valid']) {
-            $this->logger->warning(sprintf('SiretManagement: no VAT number found by VIES for %s%s', $countryCode, $number));
+            $this->logger->warning('SiretManagement: no VAT number found by VIES', ['countryCode' => $countryCode]);
 
             return Translator::getInstance()->trans(
                 'This VAT number was not found. Your account will still be created, but you may want to double-check it.',
@@ -310,39 +313,40 @@ class VatExistenceChecker
     /**
      * @return array{httpCode: int, body: ?string, error: bool}
      */
-    protected function httpGet(string $url): array
+    private function httpGet(string $url): array
     {
-        $ch = curl_init($url);
-        curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT => 5,
+        return $this->request('GET', $url, [
+            'timeout' => 5,
         ]);
-        $body = curl_exec($ch);
-        $error = 0 !== curl_errno($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        return ['httpCode' => $httpCode, 'body' => false === $body ? null : $body, 'error' => $error];
     }
 
     /**
      * @return array{httpCode: int, body: ?string, error: bool}
      */
-    protected function httpPost(string $url, array $jsonBody): array
+    private function httpPost(string $url, array $jsonBody): array
     {
-        $ch = curl_init($url);
-        curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT => 5,
-            CURLOPT_POST => true,
-            CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
-            CURLOPT_POSTFIELDS => json_encode($jsonBody, JSON_THROW_ON_ERROR),
+        return $this->request('POST', $url, [
+            'json' => $jsonBody,
+            'timeout' => 5,
         ]);
-        $body = curl_exec($ch);
-        $error = 0 !== curl_errno($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+    }
 
-        return ['httpCode' => $httpCode, 'body' => false === $body ? null : $body, 'error' => $error];
+    /**
+     * @return array{httpCode: int, body: ?string, error: bool}
+     */
+    private function request(string $method, string $url, array $options): array
+    {
+        try {
+            $response = $this->httpClient->request($method, $url, $options);
+
+            return [
+                'httpCode' => $response->getStatusCode(),
+                'body' => $response->getContent(false),
+                'error' => false,
+            ];
+        } catch (ExceptionInterface) {
+            // Network failure (DNS, connection refused, timeout...): no HTTP response at all.
+            return ['httpCode' => 0, 'body' => null, 'error' => true];
+        }
     }
 }

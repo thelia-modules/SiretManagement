@@ -90,13 +90,28 @@
     // number was actually found. Hide it by default — unless the field already carries a
     // server-side validation error (Checkbox.html.twig gives the wrapper an "error" class in that
     // case) — and only reveal it once a live check actually reports "not found".
-    (function hideConfirmCheckboxByDefault() {
+    //
+    // A LiveComponent re-render (any field failing server-side validation, not just this one)
+    // replaces the DOM subtree, including this checkbox: running this once at script load, as
+    // the Smarty version does, only hides the very first instance. A MutationObserver re-applies
+    // the default on every subsequent render instead, tracking already-handled nodes in a
+    // WeakSet so a checkbox a live check already revealed isn't hidden again on unrelated DOM churn.
+    const defaultStateApplied = new WeakSet();
+
+    function applyCheckboxDefaultState() {
         const confirmCheckbox = document.querySelector('[data-vat-not-found-confirm]');
+        if (!confirmCheckbox || defaultStateApplied.has(confirmCheckbox)) {
+            return;
+        }
+        defaultStateApplied.add(confirmCheckbox);
         const wrapper = getCheckboxWrapper(confirmCheckbox);
         if (wrapper && !wrapper.classList.contains('error')) {
             wrapper.style.display = 'none';
         }
-    })();
+    }
+
+    applyCheckboxDefaultState();
+    new MutationObserver(applyCheckboxDefaultState).observe(document.body, {childList: true, subtree: true});
 
     function updateSubmitState(vatInput) {
         const form = vatInput.closest('form');

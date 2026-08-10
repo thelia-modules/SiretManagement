@@ -8,6 +8,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use SiretManagement\Service\IntraCommunityVatChecker;
 use SiretManagement\Service\VatExistenceChecker;
+use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Thelia\Core\Translation\Translator;
 
@@ -38,7 +39,7 @@ class VatExistenceCheckerFunctionalTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->checker = new VatExistenceChecker(new NullLogger(), new IntraCommunityVatChecker());
+        $this->checker = new VatExistenceChecker(new NullLogger(), new IntraCommunityVatChecker(), HttpClient::create());
 
         $availability = $this->checker->checkApiAvailability();
         if (!$availability['available']) {

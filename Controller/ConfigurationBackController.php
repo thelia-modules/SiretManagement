@@ -36,6 +36,11 @@ class ConfigurationBackController extends BaseAdminController
     ) {
     }
 
+    private function getThrottleCache(): CacheItemPoolInterface
+    {
+        return $this->throttleCache;
+    }
+
     /**
      */
     #[Route('/admin/module/siret/configuration/save', name: '_cofiguration_siret', methods: ['POST'])]
