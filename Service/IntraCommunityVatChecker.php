@@ -37,8 +37,9 @@ class IntraCommunityVatChecker
             "(FI)?[0-9]{8}", # Finland
             "(FR)?[0-9A-Z]{2}[0-9]{9}", # France
             "(GB)?([0-9]{9}([0-9]{3})?|[A-Z]{2}[0-9]{3})", # United Kingdom
+            "(HR)?[0-9]{11}", # Croatia
             "(HU)?[0-9]{8}", # Hungary
-            "(IE)?[0-9]S[0-9]{5}L", # Ireland
+            "(IE)?([0-9][A-Z][0-9]{5}[A-Z]|[0-9]{7}[A-W][A-I]?)", # Ireland
             "(IT)?[0-9]{11}", # Italy
             "(LT)?([0-9]{9}|[0-9]{12})", # Lithuania
             "(LU)?[0-9]{8}", # Luxembourg

@@ -28,7 +28,7 @@ final readonly class VatExistenceChecker
     /** Member states (and Northern Ireland's VIES-specific code) covered by VIES. */
     private const EU_COUNTRY_CODES = [
         'AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'EL', 'ES', 'FI', 'FR',
-        'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MT', 'NL', 'PL', 'PT', 'RO', 'SE',
+        'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MT', 'NL', 'PL', 'PT', 'RO', 'SE',
         'SI', 'SK', 'XI',
     ];
 
@@ -325,8 +325,19 @@ final readonly class VatExistenceChecker
             'transient' => false,
             'valid' => true === ($data['valid'] ?? null),
             'errorCode' => null,
-            'name' => $data['name'] ?? null,
+            'name' => $this->nameOf($data['name'] ?? null),
         ];
+    }
+
+    /**
+     * A member state that does not disclose the name answers an empty string or "---":
+     * neither is a name worth printing next to a verified number.
+     */
+    private function nameOf(mixed $name): ?string
+    {
+        $name = trim((string) $name);
+
+        return '' === $name || '---' === $name ? null : $name;
     }
 
     /**

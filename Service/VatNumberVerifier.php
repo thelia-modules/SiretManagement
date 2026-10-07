@@ -25,7 +25,7 @@ final readonly class VatNumberVerifier implements VatNumberVerifierInterface
 {
     private const int REFUSAL_KEPT_FOR_SECONDS = 600;
 
-    private const array PREFIX_BY_COUNTRY = ['GR' => 'EL'];
+    private const array PREFIXES_BY_COUNTRY = ['GR' => ['EL', 'GR']];
 
     public function __construct(
         private VatExistenceChecker $vatExistenceChecker,
@@ -35,11 +35,24 @@ final readonly class VatNumberVerifier implements VatNumberVerifierInterface
 
     public function verify(string $vatNumber, string $countryIsoAlpha2): VatVerificationResult
     {
-        $normalized = strtoupper(str_replace(' ', '', $vatNumber));
+        $normalized = strtoupper(preg_replace('/\s+/u', '', $vatNumber) ?? '');
         $country = strtoupper($countryIsoAlpha2);
 
-        if (!str_starts_with($normalized, self::PREFIX_BY_COUNTRY[$country] ?? $country)) {
+        $prefix = null;
+
+        foreach (self::PREFIXES_BY_COUNTRY[$country] ?? [$country] as $candidate) {
+            if (str_starts_with($normalized, $candidate)) {
+                $prefix = $candidate;
+                break;
+            }
+        }
+
+        if (null === $prefix) {
             return VatVerificationResult::refused(new \DateTimeImmutable());
+        }
+
+        if ('GR' === $prefix) {
+            $normalized = 'EL'.substr($normalized, 2);
         }
 
         $refusal = $this->cache->getItem('siret_management.vat_refused.'.hash('xxh128', $normalized));
