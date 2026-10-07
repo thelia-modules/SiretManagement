@@ -162,4 +162,46 @@ class VatNumberVerifierTest extends TestCase
 
         $this->assertSame(VatVerificationStatus::UNDETERMINED, $result->status);
     }
+
+    public function testAGreekAddressAcceptsTheGrPrefixAndAsksViesWithEl(): void
+    {
+        $sent = [];
+        $httpClient = new MockHttpClient(static function (string $method, string $url, array $options) use (&$sent): MockResponse {
+            $sent[] = (string) ($options['body'] ?? '');
+
+            return new MockResponse((string) json_encode(['countryCode' => 'EL', 'vatNumber' => '123456789', 'valid' => true, 'name' => 'ELLINIKI AE']));
+        });
+        $verifier = new VatNumberVerifier(new VatExistenceChecker(new NullLogger(), new IntraCommunityVatChecker(), $httpClient), new ArrayAdapter());
+
+        $result = $verifier->verify('GR123456789', 'GR');
+
+        $this->assertSame(VatVerificationStatus::VERIFIED, $result->status);
+        $this->assertCount(1, $sent);
+        $this->assertStringContainsString('"EL"', $sent[0]);
+        $this->assertStringNotContainsString('"GR"', $sent[0]);
+    }
+
+    public function testACroatianNumberIsVerified(): void
+    {
+        $verifier = $this->makeVerifier(200, json_encode(['countryCode' => 'HR', 'vatNumber' => '12345678901', 'valid' => true, 'name' => 'ACME DOO']));
+
+        $this->assertSame(VatVerificationStatus::VERIFIED, $verifier->verify('HR12345678901', 'HR')->status);
+    }
+
+    public function testAnIrishNumberOfTheCurrentFormatIsVerified(): void
+    {
+        $verifier = $this->makeVerifier(200, json_encode(['countryCode' => 'IE', 'vatNumber' => '1234567FA', 'valid' => true, 'name' => 'ACME LTD']));
+
+        $this->assertSame(VatVerificationStatus::VERIFIED, $verifier->verify('IE1234567FA', 'IE')->status);
+    }
+
+    public function testAViesNameOfThreeDashesIsNoName(): void
+    {
+        $verifier = $this->makeVerifier(200, json_encode(['countryCode' => 'FR', 'vatNumber' => '40303265045', 'valid' => true, 'name' => '---']));
+
+        $result = $verifier->verify('FR40303265045', 'FR');
+
+        $this->assertSame(VatVerificationStatus::VERIFIED, $result->status);
+        $this->assertNull($result->verifiedName);
+    }
 }
