@@ -201,7 +201,7 @@ class VatVerificationListenerTest extends ActionIntegrationTestCase
         $this->enableVatExemption();
 
         $customer = $this->factory->customer($this->factory->customerTitle());
-        $address = $this->factory->address($customer, $this->factory->country());
+        $address = $this->factory->address($customer, $this->factory->country(['isocode' => 'FR', 'isoalpha2' => 'FR', 'isoalpha3' => 'FRX']));
         $address->setVatNumber('FR40303265045')->save($this->getPropelConnection());
         $cart = $this->factory->cart($customer);
 
