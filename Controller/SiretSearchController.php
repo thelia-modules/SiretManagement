@@ -29,9 +29,15 @@ class SiretSearchController extends AbstractController
 
     public function __invoke(Request $request): Response
     {
-        $siret = $request->query->get('siret');
+        $siret = preg_replace("/\D/", '', (string) $request->query->get('siret', ''));
 
-        $data = [$this->siretAPIManagement->getData(preg_replace("/\D/", '', $siret))];
+        // A number of the wrong length, one SIRENE does not know, a SIRENE outage or a module without its API key
+        // all answer "nothing found": never a 500, and never the reason, which is about the shop's configuration.
+        try {
+            $data = [$this->siretAPIManagement->getData($siret)];
+        } catch (\Throwable) {
+            return new JsonResponse(null, Response::HTTP_NOT_FOUND);
+        }
 
         return new JsonResponse(json_encode($data, JSON_THROW_ON_ERROR));
     }
