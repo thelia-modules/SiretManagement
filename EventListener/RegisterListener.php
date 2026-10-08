@@ -24,6 +24,11 @@ use SiretManagement\Service\VatExistenceChecker;
 use SiretManagement\SiretManagement;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
+use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormError;
+use Symfony\Component\Form\FormEvent;
+use Symfony\Component\Form\FormEvents;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Thelia\Core\Event\Address\AddressCreateOrUpdateEvent;
@@ -32,8 +37,10 @@ use Thelia\Core\Event\TheliaEvents;
 use Thelia\Core\Event\TheliaFormEvent;
 use Thelia\Core\Security\SecurityContext;
 use Thelia\Core\Translation\Translator;
+use Thelia\Domain\Localization\Service\EuropeanUnionCountries;
 use Thelia\Form\CustomerCreateForm;
 use Thelia\Form\CustomerProfileUpdateForm;
+use Thelia\Model\CountryQuery;
 use Thelia\Model\Customer;
 
 class RegisterListener implements EventSubscriberInterface
@@ -50,6 +57,16 @@ class RegisterListener implements EventSubscriberInterface
      */
     private const FLEXY_INFORMATIONS_FORM_NAME = 'flexybundle_form_customer_informations_form';
     private const FLEXY_UPDATE_FORM_NAME = 'flexybundle_form_customer_update_form';
+    private const FLEXY_ADDRESS_EDIT_FORM_NAME = 'flexybundle_address_edit_form';
+
+    /**
+     * The Flexy forms using this trait already carry the core's own legal identifiers of the address (`siret`,
+     * `vat_number`, shown once a company is typed). On those the module adds no field of its own: it checks the
+     * native values (SIRENE, VIES) and copies them to siret_customer. Named by string: no dependency on Flexy.
+     */
+    private const NATIVE_LEGAL_IDENTIFIERS_TRAIT = 'FlexyBundle\\Form\\LegalIdentifierFieldsTrait';
+    private const NATIVE_SIRET = 'siret';
+    private const NATIVE_VAT_NUMBER = 'vat_number';
 
     public function __construct(
         protected RequestStack $requestStack,
@@ -92,7 +109,107 @@ class RegisterListener implements EventSubscriberInterface
             return;
         }
 
-        $this->setupCustomerForm($event->getForm()->getFormBuilder());
+        $form = $event->getForm();
+
+        if (self::carriesNativeLegalIdentifiers($form)) {
+            $this->setupNativeIdentifierChecks($form->getFormBuilder());
+
+            return;
+        }
+
+        $this->setupCustomerForm($form->getFormBuilder());
+    }
+
+    private static function carriesNativeLegalIdentifiers(object $form): bool
+    {
+        for ($class = $form::class; false !== $class; $class = get_parent_class($class)) {
+            if (\in_array(self::NATIVE_LEGAL_IDENTIFIERS_TRAIT, class_uses($class), true)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Runs the module's checks on the native identifiers once the form is submitted, and refuses the form when one
+     * fails, whatever the theme validates itself. A number outside France (SIRET) or outside the Union (VAT) is left
+     * to the core's rules: the module only knows French registration numbers and European VAT numbers.
+     */
+    private function setupNativeIdentifierChecks(FormBuilderInterface $formBuilder): void
+    {
+        $useSiret = (bool) SiretManagement::getConfigValue(SiretManagement::USE_SIRET, true);
+        $useTvaIntra = (bool) SiretManagement::getConfigValue(SiretManagement::USE_TVA_INTRA, true);
+        $vatRequired = $useTvaIntra && (bool) SiretManagement::getConfigValue(SiretManagement::TVA_INTRA_REQUIRED, null);
+
+        if ($useTvaIntra) {
+            $this->addVatNotFoundConfirmation($formBuilder, $vatRequired);
+        }
+
+        $formBuilder->addEventListener(FormEvents::POST_SUBMIT, function (FormEvent $event) use ($useSiret, $useTvaIntra): void {
+            $form = $event->getForm();
+            $data = $form->getData();
+
+            if (!\is_array($data)) {
+                return;
+            }
+
+            $countryCode = self::countryCode($data['country'] ?? null);
+
+            if ($useSiret && 'FR' === $countryCode) {
+                $this->checkNativeIdentifier($form, self::NATIVE_SIRET, SiretManagement::CHECK_SIRET_EVENT, 'SIRET', $data);
+            }
+
+            if ($useTvaIntra && null !== $countryCode && (new EuropeanUnionCountries())->isMember($countryCode)) {
+                $this->checkNativeIdentifier($form, self::NATIVE_VAT_NUMBER, SiretManagement::CHECK_VAT_EVENT, 'Intra-Community VAT Number', $data);
+            }
+        });
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function checkNativeIdentifier(FormInterface $form, string $field, string $eventName, string $label, array $data): void
+    {
+        $value = preg_replace('/\s/', '', (string) ($data[$field] ?? ''));
+
+        if ('' === $value) {
+            return;
+        }
+
+        // Same as checkVatInput(): an unchanged, already accepted number is not sent to VIES again.
+        if (self::NATIVE_VAT_NUMBER === $field && $value === $this->getStoredTvaIntra()) {
+            return;
+        }
+
+        $checkEvent = (new CheckDataEvent($value))
+            ->setNotFoundConfirmed((bool) ($data[SiretManagement::VAT_NOT_FOUND_CONFIRMED] ?? false));
+
+        $this->dispatcher->dispatch($checkEvent, $eventName);
+
+        if ($checkEvent->isValid()) {
+            return;
+        }
+
+        $message = Translator::getInstance()?->trans(
+            'Failed to validate %item : %err',
+            [
+                '%err' => $checkEvent->getError(),
+                '%item' => Translator::getInstance()?->trans($label, [], SiretManagement::DOMAIN_NAME),
+            ],
+            SiretManagement::DOMAIN_NAME
+        );
+
+        ($form->has($field) ? $form->get($field) : $form)->addError(new FormError((string) $message));
+    }
+
+    private static function countryCode(mixed $countryId): ?string
+    {
+        if (!is_numeric($countryId)) {
+            return null;
+        }
+
+        return CountryQuery::create()->findPk((int) $countryId)?->getIsoalpha2();
     }
 
     public function createCustomer(CustomerCreateOrUpdateEvent $event): void
@@ -140,16 +257,41 @@ class RegisterListener implements EventSubscriberInterface
     {
         $data = $this->getPostedFormData([self::FLEXY_INFORMATIONS_FORM_NAME]);
 
-        if ([] === $data) {
+        if ([] !== $data) {
+            // Registration step: the native identifiers when the form carries them, the module's fields otherwise.
+            $nativeForm = !\array_key_exists(SiretManagement::TVA_INTRA, $data);
+
+            $this->saveCustomerData(
+                $nativeForm ? (string) $event->getSiret() : ($data[SiretManagement::SIRET] ?? ''),
+                $nativeForm ? (string) $event->getVatNumber() : ($data[SiretManagement::TVA_INTRA] ?? ''),
+                $event->getCustomer(),
+                $event->getCompany()
+            );
+
             return;
         }
 
-        $this->saveCustomerData(
-            $data[SiretManagement::SIRET] ?? '',
-            $data[SiretManagement::TVA_INTRA] ?? '',
-            $event->getCustomer(),
-            $event->getCompany()
-        );
+        $this->saveSiretDataFromAddressForm($event);
+    }
+
+    /**
+     * An address of the account (Flexy address form) carrying a company and its identifiers becomes the customer's
+     * company data. An address without any identifier (a private address) leaves the stored data untouched.
+     */
+    public function saveSiretDataFromAddressForm(AddressCreateOrUpdateEvent $event): void
+    {
+        if ([] === $this->getPostedFormData([self::FLEXY_ADDRESS_EDIT_FORM_NAME])) {
+            return;
+        }
+
+        $siret = (string) $event->getSiret();
+        $vatNumber = (string) $event->getVatNumber();
+
+        if ('' === $siret && '' === $vatNumber) {
+            return;
+        }
+
+        $this->saveCustomerData($siret, $vatNumber, $event->getCustomer(), $event->getCompany());
     }
 
     /**
@@ -320,12 +462,14 @@ class RegisterListener implements EventSubscriberInterface
             // templates above render every field explicitly by name, so their event doesn't matter.
             TheliaEvents::FORM_AFTER_BUILD . '.' . self::FLEXY_INFORMATIONS_FORM_NAME => ['addSiretFieldsToCustomerForm', 1],
             TheliaEvents::FORM_AFTER_BUILD . '.' . self::FLEXY_UPDATE_FORM_NAME => ['addSiretFieldsToCustomerForm', 1],
+            TheliaEvents::FORM_AFTER_BUILD . '.' . self::FLEXY_ADDRESS_EDIT_FORM_NAME => ['addSiretFieldsToCustomerForm', 1],
 
             TheliaEvents::CUSTOMER_UPDATEPROFILE => ['updateCustomer', 50],
             TheliaEvents::CUSTOMER_CREATEACCOUNT => ['createCustomer', 50],
             // See saveSiretDataFromAddressCreation() docblock: Flexy's registration flow never
             // dispatches CUSTOMER_CREATEACCOUNT, only ADDRESS_CREATE.
             TheliaEvents::ADDRESS_CREATE => ['saveSiretDataFromAddressCreation', 50],
+            TheliaEvents::ADDRESS_UPDATE => ['saveSiretDataFromAddressForm', 50],
 
             SiretManagement::CHECK_SIRET_EVENT => ['checkSiret', 128],
             SiretManagement::CHECK_VAT_EVENT => ['checkVatNumber', 128],
