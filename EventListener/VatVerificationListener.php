@@ -25,7 +25,6 @@ use Thelia\Domain\Legal\Service\VatNumberVerifierInterface;
 use Thelia\Domain\Taxation\Enum\VatExemptionMode;
 use Thelia\Model\Address;
 use Thelia\Model\AddressQuery;
-use Thelia\Model\ConfigQuery;
 
 /**
  * Triggers a VAT number verification wherever an address becomes the one an
@@ -78,7 +77,7 @@ final readonly class VatVerificationListener implements EventSubscriberInterface
         }
 
         $vatNumber = $address->getVatNumber();
-        if (null === $vatNumber || '' === $vatNumber || !$this->needsVerification($address)) {
+        if (null === $vatNumber || '' === $vatNumber || $address->getVatVerificationValid()) {
             return;
         }
 
@@ -102,19 +101,6 @@ final readonly class VatVerificationListener implements EventSubscriberInterface
             new VatNumberVerifiedEvent($address, $result),
             TheliaEvents::VAT_NUMBER_VERIFIED
         );
-    }
-
-    private function needsVerification(Address $address): bool
-    {
-        $verifiedAt = $address->getVatVerifiedAt();
-        if (null === $verifiedAt) {
-            return true;
-        }
-
-        $expiresAt = \DateTimeImmutable::createFromInterface($verifiedAt)
-            ->modify(\sprintf('+%d days', ConfigQuery::getVatVerificationLifetimeDays()));
-
-        return $expiresAt < new \DateTimeImmutable();
     }
 
     public static function getSubscribedEvents(): array
