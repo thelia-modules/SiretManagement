@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SiretManagement\Tests\Unit\Service;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use SiretManagement\Service\IntraCommunityVatChecker;
@@ -449,5 +450,38 @@ class VatExistenceCheckerTest extends TestCase
 
         $this->assertFalse($outcome['ok']);
         $this->assertTrue($outcome['transient']);
+    }
+
+    /**
+     * Belgium issues enterprise numbers starting with 1 since the 0 range ran out: such a
+     * number is well-formed for VIES.
+     */
+    #[DataProvider('wellFormedNumbersOutsideTheHistoricalPatterns')]
+    public function testCheckExistenceAsksViesAboutAWellFormedNumber(string $countryCode, string $number): void
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+        $checker = $this->makeChecker([], [[
+            'httpCode' => 200,
+            'body' => json_encode([
+                'countryCode' => $countryCode,
+                'vatNumber' => $number,
+                'valid' => true,
+                'name' => 'ACME',
+            ]),
+            'error' => false,
+        ]], $logger);
+
+        $outcome = $checker->checkExistence($countryCode.$number);
+
+        $this->assertTrue($outcome['ok'], 'VIES was never asked about a well-formed number.');
+        $this->assertTrue($outcome['valid']);
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function wellFormedNumbersOutsideTheHistoricalPatterns(): iterable
+    {
+        yield 'Belgian number starting with 1' => ['BE', '1012345678'];
     }
 }

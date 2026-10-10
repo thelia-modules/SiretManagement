@@ -25,7 +25,7 @@ class IntraCommunityVatChecker
         // borrowed from https://www.oreilly.com/library/view/regular-expressions-cookbook/9781449327453/ch04s21.html
         $regexpElements = [
             "(AT)?U[0-9]{8}", # Austria
-            "(BE)?0[0-9]{9}", # Belgium
+            "(BE)?[01][0-9]{9}", # Belgium
             "(BG)?[0-9]{9,10}", # Bulgaria
             "(CY)?[0-9]{8}L", # Cyprus
             "(CZ)?[0-9]{8,10}", # Czech Republic
