@@ -27,7 +27,7 @@ class IntraCommunityVatChecker
             "(AT)?U[0-9]{8}", # Austria
             "(BE)?[01][0-9]{9}", # Belgium
             "(BG)?[0-9]{9,10}", # Bulgaria
-            "(CY)?[0-9]{8}L", # Cyprus
+            "(CY)?[0-9]{8}[A-Z]", # Cyprus
             "(CZ)?[0-9]{8,10}", # Czech Republic
             "(DE)?[0-9]{9}", # Germany
             "(DK)?[0-9]{8}", # Denmark

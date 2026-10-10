@@ -453,8 +453,8 @@ class VatExistenceCheckerTest extends TestCase
     }
 
     /**
-     * Belgium issues enterprise numbers starting with 1 since the 0 range ran out: such a
-     * number is well-formed for VIES.
+     * Belgium issues enterprise numbers starting with 1 since the 0 range ran out, and the
+     * last character of a Cypriot number is any letter: both are well-formed for VIES.
      */
     #[DataProvider('wellFormedNumbersOutsideTheHistoricalPatterns')]
     public function testCheckExistenceAsksViesAboutAWellFormedNumber(string $countryCode, string $number): void
@@ -483,5 +483,6 @@ class VatExistenceCheckerTest extends TestCase
     public static function wellFormedNumbersOutsideTheHistoricalPatterns(): iterable
     {
         yield 'Belgian number starting with 1' => ['BE', '1012345678'];
+        yield 'Cypriot number whose check letter is not L' => ['CY', '10259033P'];
     }
 }
