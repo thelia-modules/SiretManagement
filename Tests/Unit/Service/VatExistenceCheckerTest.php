@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SiretManagement\Tests\Unit\Service;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use SiretManagement\Service\IntraCommunityVatChecker;
@@ -344,5 +345,144 @@ class VatExistenceCheckerTest extends TestCase
         $result = $checker->testVatNumber('NOTAVALIDVATNUMBER');
 
         $this->assertFalse($result['success']);
+    }
+
+    public function testCheckExistenceReportsAMatchAsValid(): void
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+        $checker = $this->makeChecker([], [[
+            'httpCode' => 200,
+            'body' => json_encode([
+                'countryCode' => 'FR',
+                'vatNumber' => '40303265045',
+                'valid' => true,
+                'name' => 'SA SODIMAS',
+            ]),
+            'error' => false,
+        ]], $logger);
+
+        $outcome = $checker->checkExistence('FR40303265045');
+
+        $this->assertTrue($outcome['ok']);
+        $this->assertFalse($outcome['transient']);
+        $this->assertTrue($outcome['valid']);
+        $this->assertSame('SA SODIMAS', $outcome['name']);
+    }
+
+    public function testCheckExistenceReportsNoMatchAsNonTransient(): void
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+        $checker = $this->makeChecker([], [[
+            'httpCode' => 200,
+            'body' => json_encode([
+                'countryCode' => 'FR',
+                'vatNumber' => '99999999999',
+                'valid' => false,
+            ]),
+            'error' => false,
+        ]], $logger);
+
+        $outcome = $checker->checkExistence('FR99999999999');
+
+        $this->assertTrue($outcome['ok']);
+        $this->assertFalse($outcome['valid']);
+    }
+
+    public function testCheckExistenceReportsInvalidInputAsNonTransient(): void
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+        $checker = $this->makeChecker([], [[
+            'httpCode' => 200,
+            'body' => json_encode([
+                'actionSucceed' => false,
+                'errorWrappers' => [['error' => 'INVALID_INPUT']],
+            ]),
+            'error' => false,
+        ]], $logger);
+
+        $outcome = $checker->checkExistence('FR12123456789');
+
+        $this->assertFalse($outcome['ok']);
+        $this->assertFalse($outcome['transient']);
+    }
+
+    public function testCheckExistenceReportsAnOutageAsTransient(): void
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+        $checker = $this->makeChecker([], [[
+            'httpCode' => 503,
+            'body' => null,
+            'error' => false,
+        ]], $logger);
+
+        $outcome = $checker->checkExistence('FR40303265045');
+
+        $this->assertFalse($outcome['ok']);
+        $this->assertTrue($outcome['transient']);
+    }
+
+    public function testCheckExistenceReportsARateLimitErrorAsTransient(): void
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+        $checker = $this->makeChecker([], [[
+            'httpCode' => 200,
+            'body' => json_encode([
+                'actionSucceed' => false,
+                'errorWrappers' => [['error' => 'MS_MAX_CONCURRENT_REQ']],
+            ]),
+            'error' => false,
+        ]], $logger);
+
+        $outcome = $checker->checkExistence('FR40303265045');
+
+        $this->assertFalse($outcome['ok']);
+        $this->assertTrue($outcome['transient']);
+    }
+
+    public function testCheckExistenceReportsAnUnrecognizedCountryAsTransientWithoutAnyHttpCall(): void
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+        // No canned response provided at all: if the code called httpPost/httpGet here,
+        // the fallback error response would make queryVies() answer differently.
+        $checker = $this->makeChecker([], [], $logger);
+
+        $outcome = $checker->checkExistence('NOTAVALIDVATNUMBER');
+
+        $this->assertFalse($outcome['ok']);
+        $this->assertTrue($outcome['transient']);
+    }
+
+    /**
+     * Belgium issues enterprise numbers starting with 1 since the 0 range ran out, and the
+     * last character of a Cypriot number is any letter: both are well-formed for VIES.
+     */
+    #[DataProvider('wellFormedNumbersOutsideTheHistoricalPatterns')]
+    public function testCheckExistenceAsksViesAboutAWellFormedNumber(string $countryCode, string $number): void
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+        $checker = $this->makeChecker([], [[
+            'httpCode' => 200,
+            'body' => json_encode([
+                'countryCode' => $countryCode,
+                'vatNumber' => $number,
+                'valid' => true,
+                'name' => 'ACME',
+            ]),
+            'error' => false,
+        ]], $logger);
+
+        $outcome = $checker->checkExistence($countryCode.$number);
+
+        $this->assertTrue($outcome['ok'], 'VIES was never asked about a well-formed number.');
+        $this->assertTrue($outcome['valid']);
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function wellFormedNumbersOutsideTheHistoricalPatterns(): iterable
+    {
+        yield 'Belgian number starting with 1' => ['BE', '1012345678'];
+        yield 'Cypriot number whose check letter is not L' => ['CY', '10259033P'];
     }
 }

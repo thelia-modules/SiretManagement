@@ -28,7 +28,7 @@ final readonly class VatExistenceChecker
     /** Member states (and Northern Ireland's VIES-specific code) covered by VIES. */
     private const EU_COUNTRY_CODES = [
         'AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'EL', 'ES', 'FI', 'FR',
-        'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MT', 'NL', 'PL', 'PT', 'RO', 'SE',
+        'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MT', 'NL', 'PL', 'PT', 'RO', 'SE',
         'SI', 'SK', 'XI',
     ];
 
@@ -214,6 +214,37 @@ final readonly class VatExistenceChecker
     }
 
     /**
+     * Answers whether VIES confirms, denies, or cannot say whether a VAT number
+     * exists, for SiretManagement\Service\VatNumberVerifier to translate into the
+     * core's three-state contract (Thelia\Domain\Legal\Service\VatNumberVerifierInterface).
+     *
+     * Unlike check(), never throws: an outage is reported as `ok: false,
+     * transient: true` rather than raised, since the contract requires an
+     * answer, not an exception.
+     *
+     * @return array{ok: bool, transient: bool, valid: bool, name: ?string}
+     */
+    public function checkExistence(string $vatNumber): array
+    {
+        $parsed = $this->parseVatNumber($vatNumber);
+        if (null === $parsed) {
+            // Out of VIES's scope (non-EU country, or a shape it never covers): no
+            // answer, not a refusal.
+            return ['ok' => false, 'transient' => true, 'valid' => false, 'name' => null];
+        }
+
+        [$countryCode, $number] = $parsed;
+        $result = $this->queryVies($countryCode, $number);
+
+        return [
+            'ok' => $result['ok'],
+            'transient' => $result['transient'],
+            'valid' => $result['valid'],
+            'name' => $result['name'],
+        ];
+    }
+
+    /**
      * @return array{0: string, 1: string}|null [countryCode, number] or null if not a recognizable EU VAT number
      */
     private function parseVatNumber(string $vatNumber): ?array
@@ -277,13 +308,36 @@ final readonly class VatExistenceChecker
             ];
         }
 
+        $userError = $data['userError'] ?? null;
+
+        if (true !== ($data['valid'] ?? null) && \is_string($userError) && !\in_array($userError, ['VALID', 'INVALID'], true)) {
+            return [
+                'ok' => false,
+                'transient' => $this->isTransientError($userError),
+                'valid' => false,
+                'errorCode' => $userError,
+                'name' => null,
+            ];
+        }
+
         return [
             'ok' => true,
             'transient' => false,
             'valid' => true === ($data['valid'] ?? null),
             'errorCode' => null,
-            'name' => $data['name'] ?? null,
+            'name' => $this->nameOf($data['name'] ?? null),
         ];
+    }
+
+    /**
+     * A member state that does not disclose the name answers an empty string or "---":
+     * neither is a name worth printing next to a verified number.
+     */
+    private function nameOf(mixed $name): ?string
+    {
+        $name = trim((string) $name);
+
+        return '' === $name || '---' === $name ? null : $name;
     }
 
     /**
