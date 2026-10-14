@@ -98,13 +98,14 @@ ddev exec ./vendor/bin/phpunit --bootstrap vendor/autoload.php \
     vendor/thelia/modules/SiretManagement/Tests/Unit
 ```
 
-`Tests/Functional` is tagged `@group functional`: it makes real HTTP calls to the live VIES
-API and is excluded from the command above on purpose. Run it explicitly, deliberately, when
-you actually want to hit VIES:
+`Tests/Functional` needs the test database of the host project (`php bin/test-prepare`) and never
+calls VIES: its listener tests answer through a simulated HTTP client. The live VIES check
+(`Tests/Functional/Service/VatExistenceCheckerFunctionalTest`, group `vies-live`) is skipped unless
+`SIRET_MANAGEMENT_LIVE_VIES=1` is set; VIES rate-limits repeated calls, so run it deliberately:
 
 ```
-ddev exec ./vendor/bin/phpunit --bootstrap vendor/autoload.php \
-    vendor/thelia/modules/SiretManagement/Tests/Functional
+ddev exec env SIRET_MANAGEMENT_LIVE_VIES=1 ./vendor/bin/phpunit -c phpunit.xml.dist \
+    vendor/thelia/modules/SiretManagement/Tests/Functional/Service
 ```
 
 ### Suggestion for `default` template

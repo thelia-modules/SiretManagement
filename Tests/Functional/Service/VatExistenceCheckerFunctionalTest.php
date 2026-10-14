@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SiretManagement\Tests\Functional\Service;
 
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use SiretManagement\Service\IntraCommunityVatChecker;
@@ -13,17 +14,13 @@ use Symfony\Component\HttpFoundation\RequestStack;
 use Thelia\Core\Translation\Translator;
 
 /**
- * Functional test: makes REAL HTTP calls to the live VIES API (ec.europa.eu).
- * Not mocked, unlike SiretManagement\Tests\Unit\Service\VatExistenceCheckerTest.
- * Requires network access; skipped automatically if VIES is unreachable so CI
- * doesn't fail on an unrelated network issue.
+ * Live check: makes REAL HTTP calls to the VIES API (ec.europa.eu). SiretManagement\Tests\Unit\Service\VatExistenceCheckerTest
+ * covers the same answers (valid, unknown, unreachable, rate-limited) with a simulated client.
  *
- * @group functional
- *
- * Tagged so a CI pipeline can exclude it by default (`--exclude-group functional`):
- * repeated runs contribute to VIES's own rate limiting (MS_MAX_CONCURRENT_REQ,
- * observed live during development) and this should only run deliberately.
+ * Opt-in, in the `vies-live` group: it only runs with SIRET_MANAGEMENT_LIVE_VIES=1 in the environment. VIES answers
+ * repeated calls with a rate limit (MS_MAX_CONCURRENT_REQ), so a default run must never depend on it.
  */
+#[Group('vies-live')]
 class VatExistenceCheckerFunctionalTest extends TestCase
 {
     private VatExistenceChecker $checker;
@@ -39,6 +36,10 @@ class VatExistenceCheckerFunctionalTest extends TestCase
 
     protected function setUp(): void
     {
+        if ('1' !== getenv('SIRET_MANAGEMENT_LIVE_VIES')) {
+            $this->markTestSkipped('Live VIES check, run with SIRET_MANAGEMENT_LIVE_VIES=1.');
+        }
+
         $this->checker = new VatExistenceChecker(new NullLogger(), new IntraCommunityVatChecker(), HttpClient::create());
 
         $availability = $this->checker->checkApiAvailability();
