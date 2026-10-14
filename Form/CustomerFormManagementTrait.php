@@ -33,11 +33,12 @@ trait CustomerFormManagementTrait
     protected function setupCustomerForm(FormBuilderInterface $formBuilder): void
     {
         $removeSpacesTransformer = new CallbackTransformer(
+            // An empty field arrives as null: cast it, preg_replace() no longer accepts null.
             function ($string): string {
-                return preg_replace("/\s/", '', $string);
+                return preg_replace("/\s/", '', (string) $string);
             },
             function ($string): string {
-                return preg_replace("/\s/", '', $string);
+                return preg_replace("/\s/", '', (string) $string);
             }
         );
 
@@ -105,25 +106,7 @@ trait CustomerFormManagementTrait
         // possible). Adding it unconditionally would show a meaningless checkbox on every theme
         // that renders the form via form_rest() (Flexy), since there's no per-field template
         // control to hide it there the way the Smarty themes do.
-        $vatApiCheckEnabled = (bool) SiretManagement::getConfigValue(SiretManagement::VAT_API_CHECK_ENABLED, null);
-
-        if ($vatApiCheckEnabled && !$vatRequired) {
-            $formBuilder->add(
-                SiretManagement::VAT_NOT_FOUND_CONFIRMED,
-                CheckboxType::class,
-                [
-                    'label' => Translator::getInstance()?->trans(
-                        'I confirm this VAT number was not found and I still want to proceed',
-                        [],
-                        SiretManagement::DOMAIN_NAME
-                    ),
-                    'required' => false,
-                    'attr' => [
-                        'data-vat-not-found-confirm' => '',
-                    ],
-                ]
-            );
-        }
+        $this->addVatNotFoundConfirmation($formBuilder, $vatRequired);
 
         $formBuilder
             ->get(SiretManagement::SIRET)
@@ -156,6 +139,32 @@ trait CustomerFormManagementTrait
 
             $event->setData($data);
         });
+    }
+
+    /**
+     * The "not found by VIES, proceed anyway" checkbox, only where the VIES check can produce that outcome.
+     */
+    protected function addVatNotFoundConfirmation(FormBuilderInterface $formBuilder, bool $vatRequired): void
+    {
+        $vatApiCheckEnabled = (bool) SiretManagement::getConfigValue(SiretManagement::VAT_API_CHECK_ENABLED, null);
+
+        if ($vatApiCheckEnabled && !$vatRequired) {
+            $formBuilder->add(
+                SiretManagement::VAT_NOT_FOUND_CONFIRMED,
+                CheckboxType::class,
+                [
+                    'label' => Translator::getInstance()?->trans(
+                        'I confirm this VAT number was not found and I still want to proceed',
+                        [],
+                        SiretManagement::DOMAIN_NAME
+                    ),
+                    'required' => false,
+                    'attr' => [
+                        'data-vat-not-found-confirm' => '',
+                    ],
+                ]
+            );
+        }
     }
 
     public function checkSiretInput($value, ExecutionContextInterface $context): void

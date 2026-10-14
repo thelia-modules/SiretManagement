@@ -19,6 +19,15 @@ use Thelia\Core\Translation\Translator;
 class SiretAPIManagement
 {
     /**
+     * Without an API key the SIRENE lookup is skipped, only the length of the number is checked: a module not
+     * configured yet must not block a customer with an error about its own configuration.
+     */
+    private function hasApiKey(): bool
+    {
+        return !empty(SiretManagement::getConfigValue(SiretManagement::API_KEY, null));
+    }
+
+    /**
      * @throws \Exception
      */
     private function getSirenClient(): Sirene
@@ -81,6 +90,10 @@ class SiretAPIManagement
             throw new \Exception(Translator::getInstance()->trans('Wrong length for siret number, 14 digits expected', [], SiretManagement::DOMAIN_NAME));
         }
 
+        if (!$this->hasApiKey()) {
+            return [];
+        }
+
         return $this->getData($codeSiret);
     }
 
@@ -95,6 +108,10 @@ class SiretAPIManagement
         
         if (\strlen($codeSiren) !== 9) {
             throw new \Exception(Translator::getInstance()->trans('Wrong length for siren number 9 digits expected', [], SiretManagement::DOMAIN_NAME));
+        }
+
+        if (!$this->hasApiKey()) {
+            return [];
         }
 
         return $this->getData($codeSiren);

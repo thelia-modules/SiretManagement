@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace SiretManagement\Tests\Functional\EventListener;
 
-use PHPUnit\Framework\Attributes\Group;
 use Psr\Log\NullLogger;
 use SiretManagement\EventListener\VatVerificationListener;
 use SiretManagement\Service\IntraCommunityVatChecker;
 use SiretManagement\Service\VatExistenceChecker;
-use Symfony\Component\HttpClient\HttpClient;
+use SiretManagement\Service\VatNumberVerifier;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
+use Symfony\Component\HttpClient\MockHttpClient;
+use Symfony\Component\HttpClient\Response\JsonMockResponse;
+use Symfony\Component\HttpClient\Response\MockResponse;
 use Thelia\Core\Event\Address\AddressCreateOrUpdateEvent;
 use Thelia\Core\Event\Cart\CartCheckoutEvent;
 use Thelia\Core\Event\TheliaEvents;
@@ -189,28 +192,77 @@ class VatVerificationListenerTest extends ActionIntegrationTestCase
         return $event;
     }
 
-    #[Group('functional')]
-    public function testChoosingOwnAddressWithARealVatNumberVerifiesItAgainstLiveVies(): void
+    public function testChoosingOwnAddressRecordsTheCompanyViesFindsForItsNumber(): void
     {
-        $checker = new VatExistenceChecker(new NullLogger(), new IntraCommunityVatChecker(), HttpClient::create());
-        $availability = $checker->checkApiAvailability();
-        if (!$availability['available']) {
-            $this->markTestSkipped('VIES is currently unreachable: '.$availability['message']);
-        }
-
         $this->enableVatExemption();
+        $address = $this->frenchAddressWithAnExpiredVerification();
+        $vies = new MockHttpClient(new JsonMockResponse(['countryCode' => 'FR', 'vatNumber' => '40303265045', 'valid' => true, 'name' => 'SA SODIMAS']));
 
-        $customer = $this->factory->customer($this->factory->customerTitle());
-        $address = $this->factory->address($customer, $this->factory->country(['isocode' => 'FR', 'isoalpha2' => 'FR', 'isoalpha3' => 'FRX']));
-        $address->setVatNumber('FR40303265045')->save($this->getPropelConnection());
-        $cart = $this->factory->cart($customer);
+        $this->chooseAsInvoiceAddress($address, $vies);
 
-        $event = new CartCheckoutEvent($cart);
-        $event->setInvoiceAddressId($address->getId());
-        $this->dispatch($event, TheliaEvents::CART_SET_INVOICE_ADDRESS);
-
+        self::assertSame(1, $vies->getRequestsCount());
         $address->reload();
-        self::assertNotNull($address->getVatVerifiedAt());
+        self::assertTrue($address->getVatVerificationValid());
         self::assertSame('SA SODIMAS', $address->getVatVerifiedName());
+    }
+
+    public function testChoosingOwnAddressWithANumberViesDoesNotKnowWithdrawsItsVerification(): void
+    {
+        $this->enableVatExemption();
+        $address = $this->frenchAddressWithAnExpiredVerification();
+        $vies = new MockHttpClient(new JsonMockResponse(['countryCode' => 'FR', 'vatNumber' => '40303265045', 'valid' => false]));
+
+        $this->chooseAsInvoiceAddress($address, $vies);
+
+        self::assertSame(1, $vies->getRequestsCount());
+        $address->reload();
+        self::assertNull($address->getVatVerifiedAt());
+        self::assertNull($address->getVatVerifiedName());
+    }
+
+    public function testChoosingOwnAddressWhileViesIsUnreachableKeepsWhatWasRecorded(): void
+    {
+        $this->enableVatExemption();
+        $address = $this->frenchAddressWithAnExpiredVerification();
+        $recordedAt = $address->getVatVerifiedAt()?->format('Y-m-d H:i:s');
+        $vies = new MockHttpClient(new MockResponse('', ['error' => 'Network error']));
+
+        $this->chooseAsInvoiceAddress($address, $vies);
+
+        self::assertSame(1, $vies->getRequestsCount());
+        $address->reload();
+        self::assertSame($recordedAt, $address->getVatVerifiedAt()?->format('Y-m-d H:i:s'));
+        self::assertSame('SA SODIMAS', $address->getVatVerifiedName());
+    }
+
+    /**
+     * The listener, the module's verifier and its VIES client wired as in the container, VIES answering through the
+     * simulated HTTP client.
+     */
+    private function chooseAsInvoiceAddress(Address $address, MockHttpClient $vies): void
+    {
+        $verifier = new VatNumberVerifier(
+            new VatExistenceChecker(new NullLogger(), new IntraCommunityVatChecker(), $vies),
+            new ArrayAdapter(),
+        );
+        $listener = new VatVerificationListener($verifier, $this->getService('event_dispatcher'), new NullLogger());
+
+        $event = new CartCheckoutEvent($this->factory->cart($address->getCustomer()));
+        $event->setInvoiceAddressId($address->getId());
+        $listener->verifyOnInvoiceAddressChoice($event);
+    }
+
+    private function frenchAddressWithAnExpiredVerification(): Address
+    {
+        $customer = $this->factory->customer($this->factory->customerTitle());
+        $france = $this->factory->country(['isocode' => 'FR', 'isoalpha2' => 'FR', 'isoalpha3' => 'FRX']);
+        $address = $this->factory->address($customer, $france);
+        $address
+            ->setVatNumber('FR40303265045')
+            ->setVatVerifiedAt(new \DateTime(\sprintf('-%d days', ConfigQuery::getVatVerificationLifetimeDays() + 5)))
+            ->setVatVerifiedName('SA SODIMAS')
+            ->save($this->getPropelConnection());
+
+        return $address;
     }
 }

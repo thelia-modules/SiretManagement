@@ -4,6 +4,10 @@
     const NOT_FOUND_MESSAGE = {{ vatNotFoundMessage|json_encode|raw }};
     const MESSAGE_ID = 'siretmanagement-vat-not-found-message';
     const KEYFRAMES_ID = 'siret-vat-spin-keyframes';
+    // Flexy's input widget does not render the data-* attributes the form sets on these fields, and Flexy's own
+    // address forms carry the core's vat_number instead of the module's tva_intra: they are also found by name.
+    const VAT_INPUT_SELECTOR = '[data-vat-input], input[name$="[tva_intra]"], input[name$="[vat_number]"]';
+    const CONFIRM_SELECTOR = '[data-vat-not-found-confirm], input[name$="[vat_not_found_confirmed]"]';
 
     // Flexy's CustomerInformationForm is a Symfony UX LiveComponent: server-side validation of
     // any field (including our own checkVatInput constraint, once it fails) re-renders the
@@ -79,7 +83,7 @@
     }
 
     function setCheckboxVisible(show) {
-        const wrapper = getCheckboxWrapper(document.querySelector('[data-vat-not-found-confirm]'));
+        const wrapper = getCheckboxWrapper(document.querySelector(CONFIRM_SELECTOR));
         if (wrapper) {
             wrapper.style.display = show ? '' : 'none';
         }
@@ -99,7 +103,7 @@
     const defaultStateApplied = new WeakSet();
 
     function applyCheckboxDefaultState() {
-        const confirmCheckbox = document.querySelector('[data-vat-not-found-confirm]');
+        const confirmCheckbox = document.querySelector(CONFIRM_SELECTOR);
         if (!confirmCheckbox || defaultStateApplied.has(confirmCheckbox)) {
             return;
         }
@@ -120,7 +124,7 @@
             return;
         }
         const box = document.getElementById(MESSAGE_ID);
-        const confirmCheckbox = document.querySelector('[data-vat-not-found-confirm]');
+        const confirmCheckbox = document.querySelector(CONFIRM_SELECTOR);
         const notFound = !!(box && box.isConnected && box.style.display !== 'none');
         submitBtn.disabled = notFound && !(confirmCheckbox && confirmCheckbox.checked);
     }
@@ -143,7 +147,7 @@
                 box.textContent = notFound ? NOT_FOUND_MESSAGE : '';
                 setCheckboxVisible(notFound);
                 if (!notFound) {
-                    const confirmCheckbox = document.querySelector('[data-vat-not-found-confirm]');
+                    const confirmCheckbox = document.querySelector(CONFIRM_SELECTOR);
                     if (confirmCheckbox) {
                         confirmCheckbox.checked = false;
                     }
@@ -161,11 +165,11 @@
     }
 
     document.addEventListener('input', function (event) {
-        const vatInput = event.target.closest && event.target.closest('[data-vat-input]');
+        const vatInput = event.target.closest && event.target.closest(VAT_INPUT_SELECTOR);
         if (!vatInput) {
             return;
         }
-        const confirmCheckbox = document.querySelector('[data-vat-not-found-confirm]');
+        const confirmCheckbox = document.querySelector(CONFIRM_SELECTOR);
         if (confirmCheckbox && confirmCheckbox.checked) {
             confirmCheckbox.checked = false;
         }
@@ -174,7 +178,7 @@
     });
 
     document.addEventListener('focusout', function (event) {
-        const vatInput = event.target.closest && event.target.closest('[data-vat-input]');
+        const vatInput = event.target.closest && event.target.closest(VAT_INPUT_SELECTOR);
         if (!vatInput) {
             return;
         }
@@ -183,8 +187,8 @@
     });
 
     document.addEventListener('change', function (event) {
-        if (event.target.matches && event.target.matches('[data-vat-not-found-confirm]')) {
-            const vatInput = document.querySelector('[data-vat-input]');
+        if (event.target.matches && event.target.matches(CONFIRM_SELECTOR)) {
+            const vatInput = document.querySelector(VAT_INPUT_SELECTOR);
             if (vatInput) {
                 updateSubmitState(vatInput);
             }
@@ -192,12 +196,12 @@
     });
 
     document.addEventListener('submit', function (event) {
-        const vatInput = event.target.querySelector && event.target.querySelector('[data-vat-input]');
+        const vatInput = event.target.querySelector && event.target.querySelector(VAT_INPUT_SELECTOR);
         if (!vatInput) {
             return;
         }
         const box = document.getElementById(MESSAGE_ID);
-        const confirmCheckbox = document.querySelector('[data-vat-not-found-confirm]');
+        const confirmCheckbox = document.querySelector(CONFIRM_SELECTOR);
         const notFound = !!(box && box.isConnected && box.style.display !== 'none');
         if (notFound && !(confirmCheckbox && confirmCheckbox.checked)) {
             event.preventDefault();
