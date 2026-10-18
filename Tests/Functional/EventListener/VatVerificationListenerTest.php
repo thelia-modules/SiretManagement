@@ -257,9 +257,10 @@ class VatVerificationListenerTest extends ActionIntegrationTestCase
         $customer = $this->factory->customer($this->factory->customerTitle());
         $france = $this->factory->country(['isocode' => 'FR', 'isoalpha2' => 'FR', 'isoalpha3' => 'FRX']);
         $address = $this->factory->address($customer, $france);
+        // Midnight, so that the date has no fraction of a second: MySQL rounds it when it stores it, which would shift the date read back.
         $address
             ->setVatNumber('FR40303265045')
-            ->setVatVerifiedAt(new \DateTime(\sprintf('-%d days', ConfigQuery::getVatVerificationLifetimeDays() + 5)))
+            ->setVatVerifiedAt(new \DateTime(\sprintf('midnight -%d days', ConfigQuery::getVatVerificationLifetimeDays() + 5)))
             ->setVatVerifiedName('SA SODIMAS')
             ->save($this->getPropelConnection());
 
